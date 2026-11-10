@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مولّد البرومتات الاحترافية</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mute:#6b6a64;--line:#dedcd3;--acc:#c2410c;--acc-ink:#fff;--soft:#fbeee6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171715;--card:#222220;--ink:#f1efe8;--mute:#a09e94;--line:#3a3935;--acc:#f97316;--acc-ink:#1a1209;--soft:#2e2218}}
+:root[data-theme="dark"]{--bg:#171715;--card:#222220;--ink:#f1efe8;--mute:#a09e94;--line:#3a3935;--acc:#f97316;--acc-ink:#1a1209;--soft:#2e2218}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Tahoma,"Noto Sans Arabic",Arial,sans-serif;line-height:1.7}
+main{max-width:760px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:1.5rem;margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 20px;font-size:.95rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.t{display:block;font-weight:600;margin-bottom:8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:7px 14px;font:inherit;font-size:.92rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);padding:10px;font:inherit}
+textarea{min-height:130px;resize:vertical;padding:12px}
+textarea:focus,select:focus,.chip:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.row>div{flex:1;min-width:140px}
+.hint{color:var(--mute);font-size:.85rem;margin-top:6px}
+.drop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:11px 18px;font:inherit;font-weight:600;cursor:pointer;background:var(--acc);color:var(--acc-ink)}
+.btn.ghost{background:var(--soft);color:var(--acc)}
+.btn:disabled{opacity:.55;cursor:default}
+#prev{display:none;align-items:center;gap:10px}
+#prev img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+#out{white-space:pre-wrap;direction:ltr;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;min-height:80px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem;line-height:1.6}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px}
+.err{color:#b91c1c;margin-top:8px;font-size:.9rem}
+@media (prefers-color-scheme:dark){.err{color:#f87171}}
+footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);text-align:center;color:var(--mute);font-size:.88rem;line-height:1.9}
+footer a{color:var(--acc);text-decoration:none}
+footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<main>
+<h1>مولّد البرومتات الاحترافية</h1>
+<p class="sub">اختر النوع، اكتب فكرتك بأي لغة، ويطلع لك برومت إنجليزي احترافي جاهز تنسخه وتحطه في الموقع أو الأداة اللي تبيها.</p>
+
+<div class="card">
+<span class="t">وش تبي تولّد؟</span>
+<div class="chips" id="types"></div>
+</div>
+
+<div class="card">
+<label class="t" for="idea" id="ilabel"></label>
+<textarea id="idea"></textarea>
+<div class="row" id="opts"></div>
+<div class="hint" id="note"></div>
+</div>
+
+<div class="card" id="imgCard">
+<span class="t">صورة تقريبية (اختياري)</span>
+<div class="drop">
+<input type="file" id="file" accept="image/*" hidden>
+<button class="btn ghost" id="pick" type="button">إضافة صورة</button>
+<div id="prev"><img id="pimg" alt=""><button class="btn ghost" id="rm" type="button">حذف</button></div>
+</div>
+<div class="hint">الصورة تساعد في وصف الشكل أو الأجواء بدقة أكبر داخل البرومت.</div>
+</div>
+
+<button class="btn" id="go" type="button" style="width:100%">أنشئ البرومت الاحترافي</button>
+<div class="err" id="err"></div>
+
+<div class="card" id="res" style="display:none;margin-top:14px">
+<div class="bar"><strong>البرومت (English)</strong><button class="btn ghost" id="copy" type="button">نسخ</button></div>
+<div id="out"></div>
+</div>
+<footer>
+<div>جميع الحقوق محفوظة لـ 3dyat</div>
+<div>المصمم: علي الحاجي</div>
+<div><a href="mailto:aahaji_110@gmail.com">aahaji_110@gmail.com</a></div>
+</footer>
+</main>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var sample=null,img=null,busy=false,cur=0,off=false;
+var AR=[["16:9 wide","16:9 عريض"],["9:16 vertical","9:16 طولي"],["1:1 square","1:1 مربع"],["4:3","4:3"]];
+var T=[
+{n:"مجسم 3D",l:"وش المجسم اللي تبيه؟",ph:"مثال: برج مرجان حلزوني أبيض، ميدالية مفاتيح بتفاصيل واضحة",len:"60 to 120 words in one paragraph",
+ o:[["Target use","الاستخدام",[["3D printing (FDM/resin), watertight, printable","طباعة 3D"],["game-ready asset","للألعاب"],["general 3D render","عرض عام"]]],["Style","الأسلوب",[["realistic with fine detail","واقعي"],["stylized cartoon","كرتوني"],["low-poly","لو بولي"],["clean minimal geometric","هندسي بسيط"]]]],
+ g:"Target: text-to-3D and image-to-3D generators (Meshy, Tripo, Rodin, Hunyuan3D). Describe object, shape and proportions, key parts, materials, surface detail, colors, orientation. Single clean object, plain neutral background, centered, front three-quarter view, soft even lighting. For 3D printing add: solid watertight geometry, no floating parts, thick enough features, flat stable base. End with a new line 'Negative prompt:' and a short comma-separated avoid list."},
+{n:"صورة",l:"وش الصورة اللي تبيها؟",ph:"مثال: قهوة عربية على طاولة خشبية وقت الغروب",len:"60 to 130 words in one paragraph",
+ o:[["Style","الأسلوب",[["photorealistic photography","واقعي (تصوير)"],["digital illustration","رسم رقمي"],["anime","أنمي"],["3D render","3D رندر"],["flat vector logo/graphic","فيكتور / شعار"]]],["Aspect ratio","النسبة",AR]],
+ g:"Target: Midjourney, DALL-E, Flux, Stable Diffusion, Ideogram. Cover subject, action, setting, composition and framing, camera and lens (for photos), lighting, color palette, mood, texture, quality descriptors. Put any text that must appear inside the image in quotes. End with a new line 'Negative prompt:' (short avoid list) and a new line 'Aspect ratio:' with the chosen ratio."},
+{n:"فيديو",l:"وش الفيديو اللي تبيه؟",ph:"مثال: إعلان قصير لساعة فاخرة في صحراء الدمام وقت الفجر",len:"80 to 160 words, shot by shot if useful",
+ o:[["Style","الأسلوب",[["cinematic realistic","سينمائي واقعي"],["animated","أنيميشن"],["product advertisement","إعلان منتج"],["social media reel","ريل سوشال"]]],["Duration","المدة",[["5 seconds","5 ثواني"],["10 seconds","10 ثواني"],["15 seconds","15 ثانية"]]],["Aspect ratio","النسبة",AR]],
+ g:"Target: Veo, Sora, Runway, Kling, Pika. Describe the scene, subject and action in time order, camera movement (dolly, pan, orbit, handheld), shot type, lighting, color grade, pacing, and ambient audio or music cues if relevant. Mention duration and aspect ratio at the end."},
+{n:"برمجة لعبة",l:"وش اللعبة اللي تبيها؟",ph:"مثال: لعبة سيارات من الأعلى، تجمع عملات وتتجنب العوائق، مستويات متدرجة",len:"150 to 300 words, structured as short labeled sections",
+ o:[["Engine or language","المحرك / اللغة",[["Unity (C#)","Unity"],["Godot (GDScript)","Godot"],["Unreal Engine (C++/Blueprints)","Unreal"],["HTML5 + JavaScript, single file","HTML5/JS"],["Python (Pygame)","Pygame"],["Roblox (Lua)","Roblox"]]],["Dimension","النوع",[["2D","2D"],["3D","3D"]]]],
+ g:"Target: a coding AI assistant (Claude, ChatGPT, Cursor). Write a clear build brief with labeled sections: Goal, Core gameplay loop, Mechanics and controls, Entities and rules, Scoring and progression, UI/HUD, Art and audio placeholders, Project structure, Acceptance criteria. Ask the assistant to deliver complete runnable code with brief setup steps."},
+{n:"أغنية",l:"وش الأغنية اللي تبيها؟",ph:"مثال: أغنية عن الوطن، حماسية، إيقاع خليجي حديث",len:"50 to 100 words for the style prompt, plus lyrics if requested",
+ o:[["Genre","النوع",[["pop","بوب"],["modern Khaleeji","خليجي حديث"],["hip hop/rap","راب"],["EDM/dance","إلكتروني"],["cinematic orchestral","سينمائي"],["acoustic/folk","أكوستيك"]]],["Vocals","الأداء",[["male vocals","صوت رجالي"],["female vocals","صوت نسائي"],["instrumental, no vocals","موسيقى فقط"]]],["Lyrics language","لغة الكلمات",[["Arabic","عربي"],["English","إنجليزي"],["none","بدون كلمات"]]]],
+ g:"Target: Suno, Udio. Output two parts. Part 1 'Style prompt:' with genre tags, mood, tempo in BPM, key instruments, vocal character, production style. Part 2 'Lyrics:' with section tags like [Verse], [Chorus], [Bridge] and original lyrics in the chosen lyrics language (skip if none or instrumental)."},
+{n:"تطبيق / موقع",l:"وش التطبيق أو الموقع اللي تبيه؟",ph:"مثال: موقع لحجز المواعيد مع لوحة تحكم وإرسال تذكير واتساب",len:"150 to 300 words, structured as short labeled sections",
+ o:[["Stack","التقنية",[["HTML, CSS and vanilla JavaScript","HTML/JS"],["React","React"],["Python (Flask/FastAPI)","Python"],["Flutter","Flutter"],["no preference, choose the best fit","أي تقنية مناسبة"]]]],
+ g:"Target: a coding AI assistant. Write a build brief with labeled sections: Goal, Users, Features, Pages or screens, Data model, UX and design notes (RTL Arabic support if relevant), Tech stack, Edge cases, Acceptance criteria. Ask for complete working code and run instructions."},
+{n:"كتابة",l:"وش النص اللي تبيه؟",ph:"مثال: وصف منتج لميدالية مفاتيح مطبوعة 3D، لمتجر إلكتروني",len:"60 to 140 words",
+ o:[["Tone","الأسلوب",[["professional","رسمي"],["friendly and casual","ودّي"],["persuasive marketing","تسويقي"],["storytelling","قصصي"]]],["Output language","لغة النص المطلوب",[["Arabic","عربي"],["English","إنجليزي"]]]],
+ g:"Target: a chat LLM. Write a prompt with role, task, audience, tone, structure, length, constraints, and the requested output language for the final text."},
+{n:"أي شيء آخر",l:"وش تبي تولّد؟ اكتب الفكرة واسم الأداة لو تعرفها",ph:"مثال: عرض تقديمي عن الطاقة الشمسية، أو صوت تعليق إعلاني بنبرة حماسية",len:"60 to 200 words",
+ o:[],g:"Infer the best prompt format for the kind of output and the tool named (if any). Make it specific, structured and ready to paste."}
+];
+var F=[
+function(i,v){return 'A '+i+', '+v[1]+' style, designed for '+v[0]+'. Single centered object on a plain neutral background, front three-quarter view, soft even studio lighting, accurate proportions, fine surface detail, clean topology.'+(/printing/.test(v[0])?' Solid watertight geometry, no floating parts, thick enough features, flat stable base.':'')+'\nNegative prompt: blurry, noisy mesh, broken geometry, floating parts, text, watermark, background clutter'},
+function(i,v){return i+', '+v[0]+', detailed composition, balanced framing, professional lighting, rich color palette, sharp focus, high resolution.\nNegative prompt: blurry, low quality, distorted, extra limbs, text artifacts, watermark\nAspect ratio: '+v[1]},
+function(i,v){return v[0]+' video, '+v[1]+', '+v[2]+'. '+i+'. Smooth camera movement, dynamic lighting, cinematic color grade, natural motion, consistent subject, high detail, polished pacing.'},
+function(i,v){return 'Build a '+v[1]+' game in '+v[0]+': '+i+'.\nSections to cover:\n- Goal and core gameplay loop with clear win and lose conditions\n- Player controls and responsive input\n- Entities, obstacles and rules\n- Scoring, levels and difficulty progression\n- UI/HUD, menu and restart flow\n- Clean project structure with comments\nDeliver complete runnable code and short setup steps.'},
+function(i,v){return 'Style prompt: '+v[0]+', '+v[1]+', emotional and catchy, modern production, clear mix, strong hook, tempo around 100 BPM. Theme: '+i+'.\nLyrics language: '+v[2]+'.\nStructure: [Intro] [Verse 1] [Chorus] [Verse 2] [Chorus] [Bridge] [Final Chorus] [Outro]'},
+function(i,v){return 'Build an app using '+v[0]+': '+i+'.\nSections to cover:\n- Goal and target users\n- Core features and screens\n- Data model\n- UX and design notes, RTL Arabic support if relevant\n- Edge cases and error handling\n- Acceptance criteria\nDeliver complete working code and run instructions.'},
+function(i,v){return 'Act as a professional writer. Write: '+i+'.\nTone: '+v[0]+'. Output language: '+v[1]+'. Use a clear structure, an engaging opening, concise sentences, and no filler.'},
+function(i,v){return i+'.\nBe specific, well structured and detailed. State the goal, audience, format, style, constraints and expected output.'}
+];
+function tr(s){
+ if(!/[\u0600-\u06FF]/.test(s))return Promise.resolve(s);
+ var parts=s.match(/[^.!\u061f?\n]+[.!\u061f?]*/g)||[s],chunks=[],c='';
+ parts.forEach(function(p){if((c+p).length>450){if(c)chunks.push(c);c=p}else c+=p});if(c)chunks.push(c);
+ return Promise.all(chunks.map(function(x){
+  return fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(x)+'&langpair=ar|en').then(function(r){return r.json()}).then(function(j){
+   var t=j&&j.responseData&&j.responseData.translatedText;return(t&&!/MYMEMORY WARNING/i.test(t))?t:x}).catch(function(){return x})
+ })).then(function(a){return a.join(' ').trim()});
+}
+function offline(){off=true;$('imgCard').style.display='none';$('note').textContent='وضع الاستضافة المستقلة: تُترجم فكرتك تلقائياً وتُركَّب في قالب احترافي جاهز.'}
+function offlineGo(idea,t){
+ busy=true;$('err').textContent='';$('go').disabled=true;$('go').textContent='جاري الإنشاء…';
+ var v=t.o.map(function(o,i){return $('o'+i).value});
+ tr(idea).then(function(en){
+  $('res').style.display='block';$('out').textContent=F[cur](en.replace(/[.\s]+$/,''),v);
+ }).then(function(){busy=false;$('go').disabled=false;$('go').textContent='أنشئ البرومت الاحترافي'});
+}
+function build(){
+ var c=$('types');
+ T.forEach(function(t,i){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=t.n;b.setAttribute('aria-pressed',i===cur);b.onclick=function(){cur=i;draw()};c.appendChild(b)});
+ draw();
+}
+function draw(){
+ var t=T[cur];
+ Array.prototype.forEach.call($('types').children,function(b,i){b.setAttribute('aria-pressed',i===cur)});
+ $('ilabel').textContent=t.l;$('idea').placeholder=t.ph;
+ var h='';
+ t.o.forEach(function(o,i){
+  h+='<div><label class="t" for="o'+i+'">'+o[1]+'</label><select id="o'+i+'">';
+  o[2].forEach(function(v){h+='<option value="'+v[0]+'">'+v[1]+'</option>'});
+  h+='</select></div>';
+ });
+ $('opts').innerHTML=h;$('opts').style.display=t.o.length?'flex':'none';
+ $('res').style.display='none';$('err').textContent='';
+}
+function init(){
+ build();
+ if(!window.claude||!claude.use){offline();return}
+ claude.use('sample').then(function(s){
+  sample=s;
+  if(!s){offline();return}
+  try{s.limits().then(function(l){if(!l||!l.images)$('imgCard').style.display='none'}).catch(function(){})}catch(e){}
+ }).catch(function(){offline()});
+}
+$('pick').onclick=function(){$('file').click()};
+$('file').onchange=function(e){
+ var f=e.target.files[0];if(!f)return;
+ if(f.size>5*1024*1024){$('err').textContent='حجم الصورة كبير، اختر صورة أقل من 5 ميجا.';return}
+ $('err').textContent='';img=f;$('pimg').src=URL.createObjectURL(f);$('prev').style.display='flex';
+};
+$('rm').onclick=function(){img=null;$('file').value='';$('prev').style.display='none'};
+$('copy').onclick=function(){
+ var t=$('out').textContent,b=$('copy');
+ var done=function(){b.textContent='تم النسخ ✓';setTimeout(function(){b.textContent='نسخ'},1500)};
+ function fb(){var r=document.createRange();r.selectNodeContents($('out'));var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand('copy');done()}catch(e){}}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,fb)}else fb();
+};
+$('go').onclick=function(){
+ var idea=$('idea').value.trim(),t=T[cur];
+ if(!idea){$('err').textContent='اكتب فكرتك أولاً.';return}
+ if(busy)return;if(!sample){if(off)offlineGo(idea,t);return}
+ busy=true;$('err').textContent='';$('go').disabled=true;$('go').textContent='جاري الإنشاء…';
+ $('res').style.display='block';$('out').textContent='…';
+ var set='';
+ t.o.forEach(function(o,i){set+='- '+o[0]+': '+$('o'+i).value+'\n'});
+ var p='You are an expert prompt engineer for generative AI tools.\nTurn the user idea below (may be Arabic or any language) into ONE professional, ready-to-paste English prompt.\n'+
+ 'Type: '+t.n+' ('+t.g+')\n'+(set?'User settings:\n'+set:'')+
+ 'Rules:\n- Be specific and concrete; never invent details that contradict the idea'+(img?' or the attached reference image; describe what the image shows and merge it with the idea':'')+'.\n'+
+ '- Length: '+t.len+'.\n- Output ONLY the prompt text, in English, with no preface and no markdown formatting.\n\nUser idea:\n'+idea;
+ var o={cache:false,onText:function(r){$('out').textContent=r.text}};
+ if(img)o.images=[img];
+ sample(p,o).then(function(r){$('out').textContent=(r.text||'').trim()}).catch(function(e){
+  if(!$('out').textContent||$('out').textContent==='…')$('res').style.display='none';
+  $('err').textContent=(e&&e.code==='not_granted')?'لازم توافق على الإذن عشان يشتغل المولّد.':(e&&e.code==='rate_limited')?'طلبات كثيرة، جرّب بعد شوي.':'صار خطأ، حاول مرة ثانية.';
+ }).then(function(){busy=false;$('go').disabled=false;$('go').textContent='أنشئ البرومت الاحترافي'});
+};
+init();
+})();
+</script>
+</body>
+</html>
