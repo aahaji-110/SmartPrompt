@@ -38,6 +38,17 @@ textarea:focus,select:focus,.chip:focus-visible{outline:2px solid var(--acc);out
 @media (prefers-color-scheme:dark){.err{color:#f87171}}
 footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);text-align:center;color:var(--mute);font-size:.88rem;line-height:1.9}
 footer a{color:var(--acc);text-decoration:none}
+#stats{padding:12px 14px}
+.sl{font-size:.8rem;color:var(--mute);text-align:center;margin-bottom:8px}
+.live{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;margin-inline-end:6px;animation:pl 1.6s infinite}
+@keyframes pl{50%{opacity:.25}}
+.sh{display:flex;gap:8px;text-align:center}
+.sh>div{flex:1}
+.sh b{display:block;font-size:1.35rem;line-height:1.25;color:var(--acc);font-variant-numeric:tabular-nums}
+.sh span{color:var(--mute);font-size:.78rem}
+.sp{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.sp span{background:var(--soft);border-radius:999px;padding:2px 10px;font-size:.78rem}
+.sp b{color:var(--acc);margin-inline-start:5px}
 footer a:hover{text-decoration:underline}
 </style>
 </head>
@@ -75,6 +86,7 @@ footer a:hover{text-decoration:underline}
 <div class="bar"><strong>البرومت (English)</strong><button class="btn ghost" id="copy" type="button">نسخ</button></div>
 <div id="out"></div>
 </div>
+<div class="card" id="stats" style="display:none;margin-top:14px"><div class="sl"><span class="live"></span>إحصائيات الموقع مباشرة</div><div id="sbody"></div></div>
 <footer>
 <div>جميع الحقوق محفوظة لـ 3dyat</div>
 <div>المصمم: علي الحاجي</div>
@@ -135,8 +147,30 @@ function offlineGo(idea,t){
  busy=true;$('err').textContent='';$('go').disabled=true;$('go').textContent='جاري الإنشاء…';
  var v=t.o.map(function(o,i){return $('o'+i).value});
  tr(idea).then(function(en){
-  $('res').style.display='block';$('out').textContent=F[cur](en.replace(/[.\s]+$/,''),v);
+  $('res').style.display='block';$('out').textContent=F[cur](en.replace(/[.\s]+$/,''),v);countGen();
  }).then(function(){busy=false;$('go').disabled=false;$('go').textContent='أنشئ البرومت الاحترافي'});
+}
+var API='https://countapi.mileshilliard.com/api/v1/',PX='3dyat-pg-k7q2x9m4-',ADMIN='#stats-k7q2';
+var KEYS=['3d','image','video','game','song','app','write','other'];
+function hit(k){try{fetch(API+'hit/'+PX+k).catch(function(){})}catch(e){}}
+function getv(k){return fetch(API+'get/'+PX+k).then(function(r){return r.ok?r.json():{value:0}}).then(function(j){return Number(j.value)||0}).catch(function(){return null})}
+function track(){
+ hit('visits');
+ try{if(!localStorage.getItem('3dyat_seen')){localStorage.setItem('3dyat_seen','1');hit('visitors')}}catch(e){}
+}
+function countGen(){hit('gen');hit('gen-'+KEYS[cur])}
+function fmt(x){return x===null?'—':Number(x).toLocaleString('en-US')}
+function cell(n,x){return '<div><b>'+fmt(x)+'</b><span>'+n+'</span></div>'}
+function dash(){
+ var box=$('stats');
+ var ks=['visitors','visits','gen'].concat(KEYS.map(function(k){return 'gen-'+k}));
+ Promise.all(ks.map(getv)).then(function(v){
+  if(v.every(function(x){return x===null})){box.style.display='none';return}
+  box.style.display='block';
+  var h='<div class="sh">'+cell('زوار',v[0])+cell('مرات دخول',v[1])+cell('برومت تم توليده',v[2])+'</div>',c='';
+  KEYS.forEach(function(k,i){if(v[3+i])c+='<span>'+T[i].n+'<b>'+fmt(v[3+i])+'</b></span>'});
+  $('sbody').innerHTML=h+(c?'<div class="sp">'+c+'</div>':'');
+ });
 }
 function build(){
  var c=$('types');
@@ -157,7 +191,7 @@ function draw(){
  $('res').style.display='none';$('err').textContent='';
 }
 function init(){
- build();
+ build();track();dash();setInterval(dash,15000);window.addEventListener('hashchange',dash);
  if(!window.claude||!claude.use){offline();return}
  claude.use('sample').then(function(s){
   sample=s;
@@ -192,7 +226,7 @@ $('go').onclick=function(){
  '- Length: '+t.len+'.\n- Output ONLY the prompt text, in English, with no preface and no markdown formatting.\n\nUser idea:\n'+idea;
  var o={cache:false,onText:function(r){$('out').textContent=r.text}};
  if(img)o.images=[img];
- sample(p,o).then(function(r){$('out').textContent=(r.text||'').trim()}).catch(function(e){
+ sample(p,o).then(function(r){$('out').textContent=(r.text||'').trim();countGen()}).catch(function(e){
   if(!$('out').textContent||$('out').textContent==='…')$('res').style.display='none';
   $('err').textContent=(e&&e.code==='not_granted')?'لازم توافق على الإذن عشان يشتغل المولّد.':(e&&e.code==='rate_limited')?'طلبات كثيرة، جرّب بعد شوي.':'صار خطأ، حاول مرة ثانية.';
  }).then(function(){busy=false;$('go').disabled=false;$('go').textContent='أنشئ البرومت الاحترافي'});
