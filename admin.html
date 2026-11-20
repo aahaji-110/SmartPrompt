@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>لوحة تحكم الأدمن | 3dyat SmartPrompt</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mute:#6b6a64;--line:#dedcd3;--acc:#c2410c;--acc-ink:#fff;--soft:#fbeee6}
+@media (prefers-color-scheme:dark){:root{--bg:#171715;--card:#222220;--ink:#f1efe8;--mute:#a09e94;--line:#3a3935;--acc:#f97316;--acc-ink:#1a1209;--soft:#2e2218}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Tahoma,"Noto Sans Arabic",Arial,sans-serif;line-height:1.65}
+main{max-width:960px;margin:0 auto;padding:22px 16px 60px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:1.35rem;margin:0}
+h2{font-size:1.1rem;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.stat b{display:block;font-size:1.5rem;color:var(--acc)}
+.stat span{font-size:.82rem;color:var(--mute)}
+.btn{border:0;border-radius:10px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--acc);color:var(--acc-ink)}
+.btn.ghost{background:var(--soft);color:var(--acc)}
+.btn.sm{padding:6px 12px;font-size:.82rem;border-radius:8px}
+.btn:disabled{opacity:.55;cursor:default}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);padding:9px 11px;font:inherit}
+label{display:block;font-weight:600;font-size:.88rem;margin:10px 0 4px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>div{flex:1;min-width:180px}
+.err{color:#b91c1c;font-size:.9rem;margin-top:8px}
+.ok{color:#15803d;font-size:.9rem;margin-top:8px}
+.prompt-item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--bg)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:.83rem}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{background:var(--soft);color:var(--acc);padding:2px 9px;border-radius:999px;font-weight:600;font-size:.78rem}
+.badge.neutral{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.idea-box{font-size:.88rem;color:var(--mute);margin-bottom:8px;padding:8px 10px;background:var(--card);border-radius:8px;border:1px solid var(--line)}
+.res-box{white-space:pre-wrap;direction:ltr;text-align:left;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.84rem;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:220px;overflow:auto}
+.ad-prev{margin-top:12px;text-align:center;padding:12px;border:1px dashed var(--line);border-radius:10px}
+.ad-prev img{max-width:100%;max-height:160px;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
+th{color:var(--mute);font-weight:600}
+.tbl-wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<main>
+  <div class="head">
+    <h1>⚙️ لوحة تحكم الأدمن — 3dyat</h1>
+    <div style="display:flex;gap:8px">
+      <a href="/" class="btn ghost sm" style="text-decoration:none">فتح الموقع</a>
+      <button class="btn ghost sm" id="logoutBtn" style="display:none" type="button">تسجيل خروج</button>
+    </div>
+  </div>
+
+  <!-- Login Card -->
+  <div class="card" id="loginCard" style="max-width:420px;margin:40px auto">
+    <h2>دخول المدير</h2>
+    <form id="loginForm">
+      <label for="adminPass">كلمة مرور الأدمن</label>
+      <input type="password" id="adminPass" dir="ltr" required placeholder="••••••••">
+      <div class="err" id="loginErr"></div>
+      <button class="btn" type="submit" style="width:100%;margin-top:12px">دخول اللوحة</button>
+    </form>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dash" style="display:none">
+    <div class="grid">
+      <div class="stat"><b id="sVisitors">0</b><span>الزوار</span></div>
+      <div class="stat"><b id="sVisits">0</b><span>مرات الدخول</span></div>
+      <div class="stat"><b id="sGen">0</b><span>البرومتات المولّدة</span></div>
+      <div class="stat"><b id="sUsers">0</b><span>المسجلون بالإيميل</span></div>
+      <div class="stat"><b id="sAi">—</b><span>محرك Gemini AI</span></div>
+    </div>
+
+    <!-- Last 5 Prompts (Admin Only) -->
+    <div class="card">
+      <h2>
+        <span>🔥 آخر 5 برومتات تم توليدها</span>
+        <button class="btn ghost sm" id="refreshBtn" type="button">تحديث</button>
+      </h2>
+      <div id="promptsList"></div>
+    </div>
+
+    <!-- Ad Banner Manager -->
+    <div class="card">
+      <h2>📢 إدارة البنر الإعلاني</h2>
+      <div class="row">
+        <div>
+          <label for="a_on">حالة الإعلان</label>
+          <select id="a_on">
+            <option value="1">مفعّل</option>
+            <option value="0">معطّل (مخفي)</option>
+          </select>
+        </div>
+        <div>
+          <label for="a_ty">نوع الإعلان</label>
+          <select id="a_ty">
+            <option value="image">صورة (بنر)</option>
+            <option value="text">نص</option>
+            <option value="code">كود (AdSense وغيره)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="a_file">رفع صورة بنر مباشرة من جهازك</label>
+          <input type="file" id="a_file" accept="image/*">
+        </div>
+        <div>
+          <label for="a_img">أو رابط الصورة الحالي</label>
+          <input type="text" id="a_img" dir="ltr" placeholder="/imeges/banner.png أو https://...">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="a_ln">رابط التحويل عند الضغط على الإعلان</label>
+          <input type="text" id="a_ln" dir="ltr" placeholder="https://3dyat.com/">
+        </div>
+        <div>
+          <label for="a_tx">نص الإعلان / الوصف</label>
+          <input type="text" id="a_tx" placeholder="ثرديات موقع يحقق أحلامك">
+        </div>
+      </div>
+
+      <label for="a_cd">كود الإعلان (في حال اختيار نوع: كود)</label>
+      <textarea id="a_cd" dir="ltr" style="min-height:70px"></textarea>
+
+      <div class="ad-prev" id="adPrev"></div>
+
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="saveAdBtn" type="button">حفظ وتحديث الإعلان مباشرة</button>
+        <span id="adMsg"></span>
+      </div>
+    </div>
+
+    <!-- Registered Users -->
+    <div class="card">
+      <h2>
+        <span>👥 المستخدمون المسجلون بالإيميل</span>
+        <button class="btn ghost sm" id="exportCsvBtn" type="button">تصدير CSV</button>
+      </h2>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>الإيميل</th><th>الاسم</th><th>المدينة</th><th>الباقة</th><th>عدد البرومتات</th><th>تاريخ التسجيل</th></tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var uploadBase64='', uploadMime='', usersCache=[];
+
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+  function copyText(text, btn){
+    var done=function(){var old=btn.textContent;btn.textContent='تم النسخ ✓';setTimeout(function(){btn.textContent=old},1400)};
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done);
+    else{var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done()}
+  }
+
+  function renderAdPreview(){
+    var box=$('adPrev');
+    var on=$('a_on').value==='1', ty=$('a_ty').value, img=uploadBase64?('data:'+uploadMime+';base64,'+uploadBase64):$('a_img').value.trim(), tx=$('a_tx').value.trim();
+    if(!on){box.innerHTML='<span style="color:var(--mute)">الإعلان مخفي حالياً</span>';return}
+    if(ty==='image'&&img){box.innerHTML='<img src="'+esc(img)+'" alt="">'}
+    else if(ty==='text'&&tx){box.innerHTML='<strong>'+esc(tx)+'</strong>'}
+    else{box.innerHTML='<span style="color:var(--mute)">معاينة الإعلان</span>'}
+  }
+
+  function compressBanner(file, cb){
+    var reader=new FileReader();
+    reader.onload=function(){
+      var im=new Image();
+      im.onload=function(){
+        var maxW=1200, w=im.width, h=im.height;
+        if(w>maxW){h=Math.round(h*(maxW/w));w=maxW}
+        var cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(im,0,0,w,h);
+        var out=cv.toDataURL('image/webp',0.85);
+        if(!out.startsWith('data:image/webp')) out=cv.toDataURL('image/jpeg',0.85);
+        var m=out.match(/^data:(image\/[^;]+);base64,(.+)$/);
+        if(m) cb(m[1],m[2]);
+      };
+      im.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  $('a_file').onchange=function(e){
+    var f=e.target.files[0];if(!f)return;
+    compressBanner(f,function(mime,b64){
+      uploadMime=mime;uploadBase64=b64;
+      renderAdPreview();
+    });
+  };
+  ['a_on','a_ty','a_img','a_tx'].forEach(function(id){$(id).oninput=renderAdPreview;$(id).onchange=renderAdPreview});
+
+  function loadOverview(){
+    fetch('/api/admin/overview')
+      .then(function(r){
+        if(r.status===401){$('loginCard').style.display='block';$('dash').style.display='none';$('logoutBtn').style.display='none';return null}
+        return r.json();
+      })
+      .then(function(d){
+        if(!d||!d.ok)return;
+        $('loginCard').style.display='none';
+        $('dash').style.display='block';
+        $('logoutBtn').style.display='inline-block';
+
+        $('sVisitors').textContent=Number(d.stats.visitors||0).toLocaleString('en-US');
+        $('sVisits').textContent=Number(d.stats.visits||0).toLocaleString('en-US');
+        $('sGen').textContent=Number(d.stats.gen||0).toLocaleString('en-US');
+        $('sUsers').textContent=Number(d.users_count||0).toLocaleString('en-US');
+        $('sAi').textContent=d.ai_enabled?'مفعّل ✅':'قوالب ⚡';
+
+        // Ad config
+        if(d.ad){
+          $('a_on').value=d.ad.on?'1':'0';
+          $('a_ty').value=d.ad.type||'image';
+          $('a_img').value=d.ad.img||'';
+          $('a_ln').value=d.ad.link||'';
+          $('a_tx').value=d.ad.text||'';
+          $('a_cd').value=d.ad.code||'';
+          uploadBase64='';uploadMime='';$('a_file').value='';
+          renderAdPreview();
+        }
+
+        // Last 5 prompts
+        var list=$('promptsList');
+        if(!d.last_prompts||!d.last_prompts.length){
+          list.innerHTML='<p style="color:var(--mute);margin:0">لا توجد برومتات مولّدة بعد.</p>';
+        } else {
+          list.innerHTML='';
+          d.last_prompts.forEach(function(p){
+            var loc=[p.city,p.country].filter(Boolean).join('، ')||'غير محدد';
+            var div=document.createElement('div');
+            div.className='prompt-item';
+            div.innerHTML=
+              '<div class="meta">'+
+                '<div class="badges">'+
+                  '<span class="badge">'+esc(p.category_name)+'</span>'+
+                  '<span class="badge neutral" dir="ltr">✉️ '+esc(p.user_email)+(p.user_name?' ('+esc(p.user_name)+')':'')+'</span>'+
+                  '<span class="badge neutral">📍 '+esc(loc)+'</span>'+
+                  '<span class="badge neutral">'+(p.engine==='ai'?'✨ AI':'⚡ قالب')+'</span>'+
+                '</div>'+
+                '<div style="display:flex;align-items:center;gap:8px">'+
+                  '<span style="color:var(--mute);font-size:.78rem" dir="ltr">'+esc(p.created_at)+'</span>'+
+                  '<button class="btn sm" type="button">نسخ البرومت</button>'+
+                '</div>'+
+              '</div>'+
+              '<div class="idea-box"><strong>الفكرة:</strong> '+esc(p.idea)+'</div>'+
+              '<div class="res-box">'+esc(p.result)+'</div>';
+            div.querySelector('button').onclick=function(ev){copyText(p.result,ev.target)};
+            list.appendChild(div);
+          });
+        }
+        loadUsers();
+      });
+  }
+
+  function loadUsers(){
+    fetch('/api/admin/users').then(function(r){return r.json()}).then(function(d){
+      if(!d||!d.ok)return;
+      usersCache=d.users||[];
+      var tb=$('usersBody');
+      if(!usersCache.length){tb.innerHTML='<tr><td colspan="6" style="color:var(--mute)">لا يوجد مستخدمون مسجلون بعد.</td></tr>';return}
+      tb.innerHTML=usersCache.map(function(u){
+        var loc=[u.city,u.country].filter(Boolean).join('، ')||'—';
+        return '<tr><td dir="ltr">'+esc(u.email)+'</td><td>'+esc(u.name||'—')+'</td><td>'+esc(loc)+'</td><td>'+(u.plan==='pro'?'احترافي':'مجاني')+'</td><td>'+Number(u.usage_count||0)+'</td><td dir="ltr">'+esc(u.created_at)+'</td></tr>';
+      }).join('');
+    });
+  }
+
+  $('loginForm').onsubmit=function(e){
+    e.preventDefault();
+    $('loginErr').textContent='';
+    fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:$('adminPass').value})})
+      .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})
+      .then(function(res){
+        if(!res.ok){$('loginErr').textContent=res.j.error||'كلمة المرور غير صحيحة.';return}
+        $('adminPass').value='';
+        loadOverview();
+      })
+      .catch(function(){$('loginErr').textContent='تعذر الاتصال بالسيرفر.'});
+  };
+
+  $('logoutBtn').onclick=function(){
+    fetch('/api/admin/logout',{method:'POST'}).finally(function(){location.reload()});
+  };
+  $('refreshBtn').onclick=loadOverview;
+
+  $('saveAdBtn').onclick=function(){
+    var btn=$('saveAdBtn'), msg=$('adMsg');
+    btn.disabled=true;msg.textContent='جاري الحفظ…';msg.className='';
+    fetch('/api/admin/ad',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        on:$('a_on').value==='1',
+        type:$('a_ty').value,
+        img:$('a_img').value.trim(),
+        link:$('a_ln').value.trim(),
+        text:$('a_tx').value.trim(),
+        code:$('a_cd').value.trim(),
+        uploadBase64:uploadBase64,
+        uploadMime:uploadMime
+      })
+    })
+      .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})
+      .then(function(res){
+        btn.disabled=false;
+        if(!res.ok){msg.className='err';msg.textContent=res.j.error||'فشل الحفظ';return}
+        msg.className='ok';msg.textContent='تم حفظ الإعلان وتحديث الموقع فوراً ✓';
+        if(res.j.ad&&res.j.ad.img)$('a_img').value=res.j.ad.img;
+        uploadBase64='';uploadMime='';$('a_file').value='';
+        renderAdPreview();
+      })
+      .catch(function(){btn.disabled=false;msg.className='err';msg.textContent='خطأ في الاتصال'});
+  };
+
+  $('exportCsvBtn').onclick=function(){
+    if(!usersCache.length)return;
+    var rows=[['Email','Name','City','Country','Plan','Usage','CreatedAt']];
+    usersCache.forEach(function(u){rows.push([u.email,u.name||'',u.city||'',u.country||'',u.plan||'free',u.usage_count||0,u.created_at||''])});
+    var csv='\uFEFF'+rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(',')}).join('\n');
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='smartprompt-users.csv';a.click();
+  };
+
+  loadOverview();
+})();
+</script>
+</body>
+</html>
