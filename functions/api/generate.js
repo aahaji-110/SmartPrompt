@@ -1,6 +1,6 @@
-import { ensureSchema, incrementStat } from '../../_lib/db.js';
-import { getGeo, getSecret, json, parseCookies, verifyToken } from '../../_lib/crypto.js';
-import { buildGeminiPrompt, CATEGORIES, fallbackGenerate } from '../../_lib/prompts.js';
+import { ensureSchema, incrementStat } from '../_lib/db.js';
+import { getGeo, getSecret, json, parseCookies, verifyToken } from '../_lib/crypto.js';
+import { buildGeminiPrompt, CATEGORIES, fallbackGenerate } from '../_lib/prompts.js';
 
 async function callGemini(apiKey, promptText, imageBase64, imageMime) {
   const models = ['gemini-2.5-flash', 'gemini-2.0-flash'];
