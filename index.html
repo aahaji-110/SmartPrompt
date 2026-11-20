@@ -102,6 +102,10 @@ footer a:hover{text-decoration:underline}
 .g-btn:hover{border-color:var(--acc)}
 .or-div{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:.8rem;margin:0 0 12px}
 .or-div::before,.or-div::after{content:"";flex:1;height:1px;background:var(--line)}
+.gate{border:2px dashed var(--acc);background:var(--soft);text-align:center;padding:22px 16px}
+.gate h2{margin:0 0 6px;font-size:1.1rem}
+.gate p{margin:0 0 14px;color:var(--mute);font-size:.9rem}
+.locked{opacity:.42;pointer-events:none;user-select:none;filter:grayscale(.25)}
 </style>
 </head>
 <body>
@@ -123,6 +127,15 @@ footer a:hover{text-decoration:underline}
 
   <div class="ad" id="ad" hidden></div>
 
+  <div class="card gate" id="authGate">
+    <h2>🔒 سجّل دخولك أولاً لاستخدام المولّد</h2>
+    <p>لا يمكن إنشاء أي برومت بدون حساب. سجّل مجاناً في ثواني بحساب Google أو بإيميلك.</p>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" id="gateLoginBtn" type="button">تسجيل الدخول / حساب جديد</button>
+    </div>
+  </div>
+
+  <div id="genWrap" class="locked">
   <div class="card">
     <span class="t">وش تبي تولّد؟</span>
     <div class="chips" id="types"></div>
@@ -131,7 +144,7 @@ footer a:hover{text-decoration:underline}
   <div class="card">
     <div class="chips" id="modes" style="margin-bottom:12px"></div>
     <label class="t" for="idea" id="ilabel"></label>
-    <textarea id="idea"></textarea>
+    <textarea id="idea" disabled></textarea>
     <div class="row" id="opts"></div>
     <div class="hint" id="note"></div>
   </div>
@@ -140,13 +153,14 @@ footer a:hover{text-decoration:underline}
     <span class="t">صورة تقريبية (اختياري)</span>
     <div class="drop">
       <input type="file" id="file" accept="image/*" hidden>
-      <button class="btn ghost" id="pick" type="button">إضافة صورة</button>
+      <button class="btn ghost" id="pick" type="button" disabled>إضافة صورة</button>
       <div id="prev"><img id="pimg" alt=""><button class="btn ghost sm" id="rm" type="button">حذف</button></div>
     </div>
     <div class="hint">الصورة تساعد الذكاء الاصطناعي في وصف الشكل أو الأجواء بدقة أكبر داخل البرومت.</div>
   </div>
 
-  <button class="btn" id="go" type="button" style="width:100%">أنشئ البرومت الاحترافي</button>
+  <button class="btn" id="go" type="button" style="width:100%" disabled>🔒 سجّل دخولك أولاً لإنشاء البرومت</button>
+  </div>
   <div class="err" id="err"></div>
   <div class="card" id="upgradeBox" style="display:none;margin-top:12px;border-color:var(--acc);background:var(--soft);text-align:center">
     <strong style="display:block;font-size:1.05rem;margin-bottom:6px">👑 الترقية للباقة الاحترافية</strong>
@@ -262,7 +276,16 @@ footer a:hover{text-decoration:underline}
   /* ---- Auth UI ---- */
   function renderAuth(){
     var area=$('authArea');
-    if(!currentUser){
+    var loggedIn=Boolean(currentUser);
+    $('authGate').style.display=loggedIn?'none':'block';
+    $('genWrap').classList.toggle('locked',!loggedIn);
+    $('idea').disabled=!loggedIn;
+    $('pick').disabled=!loggedIn;
+    if(!busy){
+      $('go').disabled=!loggedIn;
+      $('go').textContent=loggedIn?'أنشئ البرومت الاحترافي':'🔒 سجّل دخولك أولاً لإنشاء البرومت';
+    }
+    if(!loggedIn){
       area.innerHTML='<button class="btn ghost sm" id="openAuthBtn" type="button">دخول / حساب جديد</button>';
       $('openAuthBtn').onclick=function(){openAuth('login')};
     } else {
@@ -272,6 +295,7 @@ footer a:hover{text-decoration:underline}
       $('logoutBtn').onclick=logout;
     }
   }
+  $('gateLoginBtn').onclick=function(){openAuth('login')};
   function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 
   function openAuth(m){
