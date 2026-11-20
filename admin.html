@@ -154,6 +154,28 @@ th{color:var(--mute);font-weight:600}
       </div>
     </div>
 
+    <!-- Integrations: Google Sign-In & Gemini AI -->
+    <div class="card">
+      <h2>🔑 إعدادات الربط (دخول Google + الذكاء الاصطناعي Gemini)</h2>
+      <div class="row">
+        <div>
+          <label for="gClientId">معرّف دخول قوقل (Google Client ID)</label>
+          <input type="text" id="gClientId" dir="ltr" placeholder="xxxx.apps.googleusercontent.com">
+        </div>
+        <div>
+          <label for="geminiKey">مفتاح الذكاء الاصطناعي (Gemini API Key)</label>
+          <input type="password" id="geminiKey" dir="ltr" placeholder="اتركه فارغاً للإبقاء على المفتاح الحالي">
+        </div>
+      </div>
+      <div style="font-size:.8rem;color:var(--mute);margin-top:6px">
+        للحصول على Google Client ID مجاناً: ادخل <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:var(--acc)">Google Cloud Credentials</a> ← Create Credentials ← OAuth client ID (Web application) وأضف رابط موقعك في Authorized JavaScript origins.
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="saveIntBtn" type="button">حفظ إعدادات الربط</button>
+        <span id="intMsg"></span>
+      </div>
+    </div>
+
     <!-- Change Admin Password -->
     <div class="card">
       <h2>🔐 تغيير كلمة مرور الأدمن</h2>
@@ -248,6 +270,8 @@ th{color:var(--mute);font-weight:600}
         $('sGen').textContent=Number(d.stats.gen||0).toLocaleString('en-US');
         $('sUsers').textContent=Number(d.users_count||0).toLocaleString('en-US');
         $('sAi').textContent=d.ai_enabled?'مفعّل ✅':'قوالب ⚡';
+        $('gClientId').value=d.google_client_id||'';
+        $('geminiKey').placeholder=d.ai_enabled?'مفعّل حالياً ✅ (أدخل مفتاحاً جديداً لتغييره)':'الصق مفتاح Gemini API هنا';
 
         // Ad config
         if(d.ad){
@@ -360,6 +384,25 @@ th{color:var(--mute);font-weight:600}
     usersCache.forEach(function(u){rows.push([u.email,u.name||'',u.city||'',u.country||'',u.plan||'free',u.usage_count||0,u.created_at||''])});
     var csv='\uFEFF'+rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(',')}).join('\n');
     var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='smartprompt-users.csv';a.click();
+  };
+
+  $('saveIntBtn').onclick=function(){
+    var btn=$('saveIntBtn'), msg=$('intMsg');
+    btn.disabled=true;msg.className='';msg.textContent='جاري الحفظ…';
+    fetch('/api/admin/integrations',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({googleClientId:$('gClientId').value.trim(),geminiApiKey:$('geminiKey').value.trim()})
+    })
+      .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})
+      .then(function(res){
+        btn.disabled=false;
+        if(!res.ok){msg.className='err';msg.textContent=res.j.error||'فشل الحفظ';return}
+        msg.className='ok';msg.textContent='تم حفظ إعدادات الربط بنجاح ✓';
+        $('geminiKey').value='';
+        loadOverview();
+      })
+      .catch(function(){btn.disabled=false;msg.className='err';msg.textContent='خطأ في الاتصال'});
   };
 
   $('passForm').onsubmit=function(e){

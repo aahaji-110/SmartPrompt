@@ -97,7 +97,13 @@ export async function onRequestPost({ request, env }) {
   let result = '';
   let engine = 'template';
 
-  if (env.GEMINI_API_KEY) {
+  let geminiKey = env.GEMINI_API_KEY || '';
+  if (!geminiKey) {
+    const kRow = await env.DB.prepare(`SELECT value FROM settings WHERE key = 'gemini_api_key'`).first();
+    if (kRow && kRow.value) geminiKey = kRow.value;
+  }
+
+  if (geminiKey) {
     try {
       const promptText = buildGeminiPrompt({
         catIndex,
@@ -106,7 +112,7 @@ export async function onRequestPost({ request, env }) {
         settings,
         hasImage: Boolean(imageBase64 && imageMime)
       });
-      result = await callGemini(env.GEMINI_API_KEY, promptText, imageBase64, imageMime);
+      result = await callGemini(geminiKey, promptText, imageBase64, imageMime);
       engine = 'ai';
     } catch {
       result = await fallbackGenerate({ catIndex, idea, mode, settings });
