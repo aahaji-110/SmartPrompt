@@ -153,6 +153,31 @@ th{color:var(--mute);font-weight:600}
         </table>
       </div>
     </div>
+
+    <!-- Change Admin Password -->
+    <div class="card">
+      <h2>🔐 تغيير كلمة مرور الأدمن</h2>
+      <form id="passForm">
+        <div class="row">
+          <div>
+            <label for="curPass">كلمة المرور الحالية</label>
+            <input type="password" id="curPass" dir="ltr" required placeholder="••••••••">
+          </div>
+          <div>
+            <label for="newPass">كلمة المرور الجديدة</label>
+            <input type="password" id="newPass" dir="ltr" required minlength="6" placeholder="6 أحرف على الأقل">
+          </div>
+          <div>
+            <label for="cnfPass">تأكيد كلمة المرور الجديدة</label>
+            <input type="password" id="cnfPass" dir="ltr" required minlength="6" placeholder="أعد كتابة الجديدة">
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn" id="savePassBtn" type="submit">تحديث كلمة المرور</button>
+          <span id="passMsg"></span>
+        </div>
+      </form>
+    </div>
   </div>
 </main>
 
@@ -335,6 +360,27 @@ th{color:var(--mute);font-weight:600}
     usersCache.forEach(function(u){rows.push([u.email,u.name||'',u.city||'',u.country||'',u.plan||'free',u.usage_count||0,u.created_at||''])});
     var csv='\uFEFF'+rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(',')}).join('\n');
     var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='smartprompt-users.csv';a.click();
+  };
+
+  $('passForm').onsubmit=function(e){
+    e.preventDefault();
+    var msg=$('passMsg'), btn=$('savePassBtn');
+    var cur=$('curPass').value, nw=$('newPass').value, cnf=$('cnfPass').value;
+    if(nw!==cnf){msg.className='err';msg.textContent='كلمتا المرور الجديدتان غير متطابقتين.';return}
+    btn.disabled=true;msg.className='';msg.textContent='جاري التحديث…';
+    fetch('/api/admin/password',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({currentPassword:cur,newPassword:nw})
+    })
+      .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})
+      .then(function(res){
+        btn.disabled=false;
+        if(!res.ok){msg.className='err';msg.textContent=res.j.error||'فشل تحديث كلمة المرور.';return}
+        msg.className='ok';msg.textContent='تم تغيير كلمة مرور الأدمن بنجاح ✓';
+        $('curPass').value='';$('newPass').value='';$('cnfPass').value='';
+      })
+      .catch(function(){btn.disabled=false;msg.className='err';msg.textContent='تعذر الاتصال بالسيرفر.'});
   };
 
   loadOverview();

@@ -1,14 +1,7 @@
-import { getSecret, json, makeCookie, signToken } from '../../_lib/crypto.js';
+import { ensureSchema } from '../../_lib/db.js';
+import { getSecret, json, makeCookie, signToken, verifyPassword } from '../../_lib/crypto.js';
 
 export async function onRequestPost({ request, env }) {
-  const adminPassword = env.ADMIN_PASSWORD;
-  if (!adminPassword) {
-    return json(
-      { error: 'لم يتم تعيين كلمة مرور الأدمن (ADMIN_PASSWORD) في إعدادات Cloudflare Pages.' },
-      503
-    );
-  }
-
   let body;
   try {
     body = await request.json();
@@ -17,7 +10,31 @@ export async function onRequestPost({ request, env }) {
   }
 
   const password = String(body.password || '');
-  if (!password || password !== adminPassword) {
+  if (!password) {
+    return json({ error: 'أدخل كلمة مرور الأدمن.' }, 400);
+  }
+
+  let valid = false;
+  let customHash = null;
+
+  if (env.DB) {
+    await ensureSchema(env.DB);
+    const row = await env.DB.prepare(`SELECT value FROM settings WHERE key = 'admin_password_hash'`).first();
+    if (row && row.value) customHash = row.value;
+  }
+
+  if (customHash) {
+    valid = await verifyPassword(password, customHash);
+  } else if (env.ADMIN_PASSWORD) {
+    valid = password === env.ADMIN_PASSWORD;
+  } else {
+    return json(
+      { error: 'لم يتم تعيين كلمة مرور الأدمن (ADMIN_PASSWORD) في إعدادات Cloudflare Pages.' },
+      503
+    );
+  }
+
+  if (!valid) {
     return json({ error: 'كلمة مرور الأدمن غير صحيحة.' }, 401);
   }
 
