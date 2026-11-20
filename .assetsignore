@@ -1,4 +1,6 @@
 .git
+.gitignore
+.wrangler
 functions
 schema.sql
 wrangler.toml
