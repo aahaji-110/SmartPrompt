@@ -1,4 +1,4 @@
-// Cloudflare D1 database helper with automatic schema bootstrap & migrations
+// Cloudflare D1 database helper with automatic schema bootstrap & migrations (Lightweight Stats-Only)
 
 let schemaReady = false;
 
@@ -39,20 +39,19 @@ export async function ensureSchema(db) {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       last_login TEXT NOT NULL DEFAULT (datetime('now'))
     )`),
-    db.prepare(`CREATE TABLE IF NOT EXISTS prompts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER,
-      user_email TEXT NOT NULL,
-      user_name TEXT DEFAULT '',
+    db.prepare(`CREATE TABLE IF NOT EXISTS user_category_stats (
+      user_id INTEGER NOT NULL,
       category_key TEXT NOT NULL,
       category_name TEXT NOT NULL,
-      mode INTEGER NOT NULL DEFAULT 0,
-      idea TEXT NOT NULL,
-      result TEXT NOT NULL,
-      engine TEXT NOT NULL DEFAULT 'ai',
-      city TEXT DEFAULT '',
-      country TEXT DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      count INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (user_id, category_key)
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS user_daily_usage (
+      user_id INTEGER NOT NULL,
+      day TEXT NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (user_id, day)
     )`),
     db.prepare(`CREATE TABLE IF NOT EXISTS stats (
       key TEXT PRIMARY KEY,
@@ -63,12 +62,9 @@ export async function ensureSchema(db) {
       value TEXT NOT NULL,
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )`),
-    db.prepare(`CREATE INDEX IF NOT EXISTS idx_prompts_created_at ON prompts(created_at DESC)`),
-    db.prepare(`CREATE INDEX IF NOT EXISTS idx_prompts_user_date ON prompts(user_id, created_at)`),
     db.prepare(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`)
   ]);
 
-  // Safe migrations for existing D1 databases created before subscription fields existed
   const migrations = [
     `ALTER TABLE users ADD COLUMN plan_expires_at TEXT DEFAULT ''`,
     `ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active'`,
@@ -134,4 +130,8 @@ export function resolveEffectivePlan(user) {
     if (!Number.isNaN(exp) && exp < Date.now()) return 'free';
   }
   return 'pro';
+}
+
+export function todayUtc() {
+  return new Date().toISOString().slice(0, 10);
 }

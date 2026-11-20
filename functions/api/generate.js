@@ -1,5 +1,5 @@
-import { ensureSchema, getSubSettings, incrementStat, resolveEffectivePlan } from '../_lib/db.js';
-import { getGeo, getSecret, json, parseCookies, verifyToken } from '../_lib/crypto.js';
+import { ensureSchema, getSubSettings, incrementStat, resolveEffectivePlan, todayUtc } from '../_lib/db.js';
+import { getSecret, json, parseCookies, verifyToken } from '../_lib/crypto.js';
 import { buildGeminiPrompt, CATEGORIES, fallbackGenerate } from '../_lib/prompts.js';
 
 async function callGemini(apiKey, promptText, imageBase64, imageMime) {
@@ -96,9 +96,10 @@ export async function onRequestPost({ request, env }) {
   const imageBase64 = typeof body.imageBase64 === 'string' && body.imageBase64.length < 6_000_000 ? body.imageBase64 : '';
   const imageMime = typeof body.imageMime === 'string' && /^image\/(png|jpeg|jpg|webp|gif)$/i.test(body.imageMime) ? body.imageMime : '';
 
-  // Subscription & Quota Enforcement
   const sub = await getSubSettings(env.DB);
   const effectivePlan = resolveEffectivePlan(user);
+  const today = todayUtc();
+
   let dailyLimit = 0;
   if (user.custom_daily_limit !== null && user.custom_daily_limit !== undefined) {
     dailyLimit = Number(user.custom_daily_limit);
@@ -120,19 +121,18 @@ export async function onRequestPost({ request, env }) {
 
   if (dailyLimit > 0 || (sub.paid_mode && effectivePlan === 'free' && sub.free_daily_limit === 0 && user.custom_daily_limit === null)) {
     const todayRow = await env.DB.prepare(
-      `SELECT COUNT(*) AS count FROM prompts WHERE user_id = ? AND date(created_at) = date('now')`
+      `SELECT count FROM user_daily_usage WHERE user_id = ? AND day = ?`
     )
-      .bind(user.id)
+      .bind(user.id, today)
       .first();
     const todayUsed = Number(todayRow && todayRow.count) || 0;
-    const enforcedLimit = dailyLimit;
-    if (todayUsed >= enforcedLimit) {
+    if (todayUsed >= dailyLimit) {
       return json(
         {
           error:
-            enforcedLimit === 0
+            dailyLimit === 0
               ? 'هذه الخدمة متاحة للمشتركين في الباقة الاحترافية فقط.'
-              : `وصلت للحد اليومي (${enforcedLimit} برومتات) في باقتك الحالية. قم بالترقية للاستخدام غير المحدود!`,
+              : `وصلت للحد اليومي (${dailyLimit} برومتات) في باقتك الحالية. قم بالترقية للاستخدام غير المحدود!`,
           code: 'limit_reached',
           upgrade_price: sub.upgrade_price,
           upgrade_link: sub.upgrade_link
@@ -172,26 +172,23 @@ export async function onRequestPost({ request, env }) {
     engine = 'template';
   }
 
-  const { city, country } = getGeo(request);
-
+  // Lightweight stats-only recording (no prompt text, no location stored!)
   await Promise.all([
     env.DB.prepare(
-      `INSERT INTO prompts (user_id, user_email, user_name, category_key, category_name, mode, idea, result, engine, city, country)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO user_category_stats (user_id, category_key, category_name, count, updated_at)
+       VALUES (?, ?, ?, 1, datetime('now'))
+       ON CONFLICT(user_id, category_key) DO UPDATE SET
+         count = count + 1,
+         category_name = excluded.category_name,
+         updated_at = datetime('now')`
     )
-      .bind(
-        user.id,
-        user.email,
-        user.name || '',
-        cat.key,
-        cat.n,
-        mode,
-        idea,
-        result,
-        engine,
-        city,
-        country
-      )
+      .bind(user.id, cat.key, cat.n)
+      .run(),
+    env.DB.prepare(
+      `INSERT INTO user_daily_usage (user_id, day, count) VALUES (?, ?, 1)
+       ON CONFLICT(user_id, day) DO UPDATE SET count = count + 1`
+    )
+      .bind(user.id, today)
       .run(),
     env.DB.prepare('UPDATE users SET usage_count = usage_count + 1 WHERE id = ?')
       .bind(user.id)

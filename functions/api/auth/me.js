@@ -1,4 +1,4 @@
-import { ensureSchema, getSubSettings, resolveEffectivePlan } from '../../_lib/db.js';
+import { ensureSchema, getSubSettings, resolveEffectivePlan, todayUtc } from '../../_lib/db.js';
 import { getSecret, json, parseCookies, verifyToken } from '../../_lib/crypto.js';
 
 function isValidGoogleClientId(v) {
@@ -53,14 +53,14 @@ export async function onRequestGet({ request, env }) {
   }
 
   const todayRow = await env.DB.prepare(
-    `SELECT COUNT(*) AS count FROM prompts WHERE user_id = ? AND date(created_at) = date('now')`
+    `SELECT count FROM user_daily_usage WHERE user_id = ? AND day = ?`
   )
-    .bind(user.id)
+    .bind(user.id, todayUtc())
     .first();
   const todayUsed = Number(todayRow && todayRow.count) || 0;
   const effectivePlan = resolveEffectivePlan(user);
 
-  let dailyLimit = 0; // 0 = unlimited
+  let dailyLimit = 0;
   if (user.custom_daily_limit !== null && user.custom_daily_limit !== undefined) {
     dailyLimit = Number(user.custom_daily_limit);
   } else if (sub.paid_mode) {

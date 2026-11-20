@@ -86,13 +86,13 @@ th{color:var(--mute);font-weight:600;white-space:nowrap}
       <div class="stat"><b id="sAi">—</b><span>محرك Gemini AI</span></div>
     </div>
 
-    <!-- Last 5 Prompts (Admin Only) -->
+    <!-- Category Totals Overview (Lightweight, no prompt text stored) -->
     <div class="card">
       <h2>
-        <span>🔥 آخر 5 برومتات تم توليدها</span>
+        <span>📊 إحصائيات أنواع البرومتات (توفير كامل للمساحة)</span>
         <button class="btn ghost sm" id="refreshBtn" type="button">تحديث</button>
       </h2>
-      <div id="promptsList"></div>
+      <div id="catTotals" class="badges" style="gap:8px"></div>
     </div>
 
     <!-- Subscription & Monetization Settings -->
@@ -145,7 +145,7 @@ th{color:var(--mute);font-weight:600;white-space:nowrap}
         <button class="btn ghost sm" id="exportCsvBtn" type="button">تصدير CSV</button>
       </h2>
       <div class="filters">
-        <input type="text" id="userSearch" placeholder="🔍 ابحث بالإيميل أو الاسم أو المدينة...">
+        <input type="text" id="userSearch" placeholder="🔍 ابحث بالإيميل أو الاسم أو الملاحظة...">
         <button type="button" class="fchip active" data-f="all">الكل</button>
         <button type="button" class="fchip" data-f="pro">احترافي 👑</button>
         <button type="button" class="fchip" data-f="free">مجاني</button>
@@ -155,8 +155,8 @@ th{color:var(--mute);font-weight:600;white-space:nowrap}
         <table>
           <thead>
             <tr>
-              <th>العضو / المدينة</th>
-              <th>الاستخدام</th>
+              <th>الحساب وتفاصيل البرومتات</th>
+              <th>العدد</th>
               <th>الباقة</th>
               <th>تاريخ الانتهاء</th>
               <th>حد يومي خاص</th>
@@ -325,7 +325,7 @@ th{color:var(--mute);font-weight:600;white-space:nowrap}
       if(currentFilter==='free'&&u.plan!=='free')return false;
       if(currentFilter==='suspended'&&u.status!=='suspended')return false;
       if(q){
-        var hay=(u.email+' '+(u.name||'')+' '+(u.city||'')+' '+(u.notes||'')).toLowerCase();
+        var hay=(u.email+' '+(u.name||'')+' '+(u.notes||'')).toLowerCase();
         if(hay.indexOf(q)===-1)return false;
       }
       return true;
@@ -336,11 +336,15 @@ th{color:var(--mute);font-weight:600;white-space:nowrap}
     }
     tb.innerHTML='';
     filtered.forEach(function(u){
-      var loc=[u.city,u.country].filter(Boolean).join('، ')||'—';
+      var tags=(u.breakdown&&u.breakdown.length)
+        ? u.breakdown.map(function(b){return '<span class="badge" style="font-size:.73rem;padding:1px 7px">'+esc(b.name)+': '+b.count+'</span>'}).join(' ')
+        : '<span style="font-size:.74rem;color:var(--mute)">لم ينشئ برومتات بعد</span>';
       var tr=document.createElement('tr');
       tr.innerHTML=
-        '<td><div dir="ltr" style="font-weight:600">'+esc(u.email)+'</div><div style="font-size:.76rem;color:var(--mute)">'+esc(u.name||'—')+' · 📍 '+esc(loc)+'</div></td>'+
-        '<td><div>الكل: <b>'+Number(u.usage_count||0)+'</b></div><div style="font-size:.75rem;color:var(--mute)">اليوم: '+Number(u.today_count||0)+'</div></td>'+
+        '<td><div dir="ltr" style="font-weight:600">'+esc(u.email)+'</div>'+
+          (u.name?'<div style="font-size:.75rem;color:var(--mute)">'+esc(u.name)+'</div>':'')+
+          '<div class="badges" style="margin-top:5px;gap:4px">'+tags+'</div></td>'+
+        '<td><div>الإجمالي: <b>'+Number(u.usage_count||0)+'</b></div><div style="font-size:.75rem;color:var(--mute)">اليوم: '+Number(u.today_count||0)+'</div></td>'+
         '<td><select class="inline-sel u-plan"><option value="free"'+(u.plan!=='pro'?' selected':'')+'>مجاني</option><option value="pro"'+(u.plan==='pro'?' selected':'')+'>👑 احترافي</option></select></td>'+
         '<td><input type="date" class="inline-in u-exp" dir="ltr" value="'+esc(u.plan_expires_at||'')+'">'+
           '<div class="mini-btns"><button type="button" class="mini-btn" data-d="30">+30 يوم</button><button type="button" class="mini-btn" data-d="365">+سنة</button><button type="button" class="mini-btn" data-d="0">دائم</button></div></td>'+
@@ -439,33 +443,13 @@ th{color:var(--mute);font-weight:600;white-space:nowrap}
           renderAdPreview();
         }
 
-        var list=$('promptsList');
-        if(!d.last_prompts||!d.last_prompts.length){
-          list.innerHTML='<p style="color:var(--mute);margin:0">لا توجد برومتات مولّدة بعد.</p>';
+        var catBox=$('catTotals');
+        if(!d.category_totals||!d.category_totals.length){
+          catBox.innerHTML='<span style="color:var(--mute)">لا توجد إحصائيات بعد.</span>';
         } else {
-          list.innerHTML='';
-          d.last_prompts.forEach(function(p){
-            var loc=[p.city,p.country].filter(Boolean).join('، ')||'غير محدد';
-            var div=document.createElement('div');
-            div.className='prompt-item';
-            div.innerHTML=
-              '<div class="meta">'+
-                '<div class="badges">'+
-                  '<span class="badge">'+esc(p.category_name)+'</span>'+
-                  '<span class="badge neutral" dir="ltr">✉️ '+esc(p.user_email)+(p.user_name?' ('+esc(p.user_name)+')':'')+'</span>'+
-                  '<span class="badge neutral">📍 '+esc(loc)+'</span>'+
-                  '<span class="badge neutral">'+(p.engine==='ai'?'✨ AI':'⚡ قالب')+'</span>'+
-                '</div>'+
-                '<div style="display:flex;align-items:center;gap:8px">'+
-                  '<span style="color:var(--mute);font-size:.78rem" dir="ltr">'+esc(p.created_at)+'</span>'+
-                  '<button class="btn sm" type="button">نسخ البرومت</button>'+
-                '</div>'+
-              '</div>'+
-              '<div class="idea-box"><strong>الفكرة:</strong> '+esc(p.idea)+'</div>'+
-              '<div class="res-box">'+esc(p.result)+'</div>';
-            div.querySelector('button').onclick=function(ev){copyText(p.result,ev.target)};
-            list.appendChild(div);
-          });
+          catBox.innerHTML=d.category_totals.map(function(c){
+            return '<span class="badge'+(c.count?'':' neutral')+'" style="font-size:.84rem;padding:4px 12px">'+esc(c.name)+': <b>'+Number(c.count||0).toLocaleString('en-US')+'</b></span>';
+          }).join('');
         }
         loadUsers();
       });
@@ -550,8 +534,11 @@ th{color:var(--mute);font-weight:600;white-space:nowrap}
 
   $('exportCsvBtn').onclick=function(){
     if(!usersCache.length)return;
-    var rows=[['Email','Name','City','Country','Plan','ExpiresAt','Status','Usage','Notes','CreatedAt']];
-    usersCache.forEach(function(u){rows.push([u.email,u.name||'',u.city||'',u.country||'',u.plan||'free',u.plan_expires_at||'',u.status||'active',u.usage_count||0,u.notes||'',u.created_at||''])});
+    var rows=[['Email','Name','Plan','ExpiresAt','Status','TotalPrompts','TodayPrompts','PromptTypes','Notes','CreatedAt']];
+    usersCache.forEach(function(u){
+      var types=(u.breakdown||[]).map(function(b){return b.name+':'+b.count}).join(' | ');
+      rows.push([u.email,u.name||'',u.plan||'free',u.plan_expires_at||'',u.status||'active',u.usage_count||0,u.today_count||0,types,u.notes||'',u.created_at||'']);
+    });
     var csv='\uFEFF'+rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(',')}).join('\n');
     var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='smartprompt-users.csv';a.click();
   };

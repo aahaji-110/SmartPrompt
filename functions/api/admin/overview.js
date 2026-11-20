@@ -1,5 +1,6 @@
 import { ensureSchema, getAdConfig, getAllStats, getSubSettings } from '../../_lib/db.js';
 import { getSecret, json, parseCookies, verifyToken } from '../../_lib/crypto.js';
+import { CATEGORIES } from '../../_lib/prompts.js';
 
 async function requireAdmin(request, env) {
   const cookies = parseCookies(request);
@@ -16,13 +17,7 @@ export async function onRequestGet({ request, env }) {
   }
   await ensureSchema(env.DB);
 
-  const [promptsRes, usersCountRow, proCountRow, statsMap, ad, subSettings, gRow, kRow] = await Promise.all([
-    env.DB.prepare(
-      `SELECT id, user_email, user_name, category_key, category_name, mode, idea, result, engine, city, country, created_at
-       FROM prompts
-       ORDER BY id DESC
-       LIMIT 5`
-    ).all(),
+  const [usersCountRow, proCountRow, statsMap, ad, subSettings, gRow, kRow] = await Promise.all([
     env.DB.prepare('SELECT COUNT(*) AS count FROM users').first(),
     env.DB.prepare(`SELECT COUNT(*) AS count FROM users WHERE plan = 'pro' AND status = 'active'`).first(),
     getAllStats(env.DB),
@@ -36,6 +31,12 @@ export async function onRequestGet({ request, env }) {
   const rawCid = ((gRow && gRow.value) || env.GOOGLE_CLIENT_ID || '').trim();
   const googleClientId = /^[0-9]+-[a-z0-9_]+\.apps\.googleusercontent\.com$/i.test(rawCid) ? rawCid : '';
 
+  const categoryTotals = CATEGORIES.map((c) => ({
+    key: c.key,
+    name: c.n,
+    count: statsMap[`gen-${c.key}`] || 0
+  }));
+
   return json({
     ok: true,
     ai_enabled: hasGeminiKey,
@@ -47,7 +48,7 @@ export async function onRequestGet({ request, env }) {
       visits: statsMap.visits || 0,
       gen: statsMap.gen || 0
     },
-    last_prompts: promptsRes.results || [],
+    category_totals: categoryTotals,
     ad,
     sub_settings: subSettings
   });

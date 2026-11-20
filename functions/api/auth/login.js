@@ -31,11 +31,8 @@ export async function onRequestPost({ request, env }) {
     return json({ error: 'الإيميل أو كلمة المرور غير صحيحة.' }, 401);
   }
 
-  const { city, country } = getGeo(request);
-  await env.DB.prepare(
-    `UPDATE users SET last_login = datetime('now'), city = ?, country = ? WHERE id = ?`
-  )
-    .bind(city, country, user.id)
+  await env.DB.prepare(`UPDATE users SET last_login = datetime('now') WHERE id = ?`)
+    .bind(user.id)
     .run();
 
   const token = await signToken({ uid: user.id, email: user.email, role: 'user' }, getSecret(env));

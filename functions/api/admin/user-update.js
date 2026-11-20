@@ -23,7 +23,11 @@ export async function onRequestPost({ request, env }) {
   if (!id) return json({ error: 'معرّف المستخدم غير صالح.' }, 400);
 
   if (body.action === 'delete') {
-    await env.DB.prepare('DELETE FROM users WHERE id = ?').bind(id).run();
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM user_category_stats WHERE user_id = ?').bind(id),
+      env.DB.prepare('DELETE FROM user_daily_usage WHERE user_id = ?').bind(id),
+      env.DB.prepare('DELETE FROM users WHERE id = ?').bind(id)
+    ]);
     return json({ ok: true, deleted: true });
   }
 

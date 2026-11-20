@@ -33,13 +33,12 @@ export async function onRequestPost({ request, env }) {
   }
 
   const passwordHash = await hashPassword(password);
-  const { city, country } = getGeo(request);
 
   const res = await env.DB.prepare(
     `INSERT INTO users (email, name, password_hash, plan, city, country)
-     VALUES (?, ?, ?, 'free', ?, ?)`
+     VALUES (?, ?, ?, 'free', '', '')`
   )
-    .bind(email, name, passwordHash, city, country)
+    .bind(email, name, passwordHash)
     .run();
 
   const userId = res.meta && res.meta.last_row_id;

@@ -59,7 +59,6 @@ export async function onRequestPost({ request, env }) {
     return json({ error: 'لم نتمكن من قراءة الإيميل من حساب Google.' }, 400);
   }
 
-  const { city, country } = getGeo(request);
   let user = await env.DB.prepare(
     'SELECT id, email, name, plan, usage_count FROM users WHERE email = ?'
   )
@@ -69,17 +68,17 @@ export async function onRequestPost({ request, env }) {
   if (!user) {
     const ins = await env.DB.prepare(
       `INSERT INTO users (email, name, password_hash, plan, city, country)
-       VALUES (?, ?, 'google_oauth', 'free', ?, ?)`
+       VALUES (?, ?, 'google_oauth', 'free', '', '')`
     )
-      .bind(email, name, city, country)
+      .bind(email, name)
       .run();
     const userId = ins.meta && ins.meta.last_row_id;
     user = { id: userId, email, name, plan: 'free', usage_count: 0 };
   } else {
     await env.DB.prepare(
-      `UPDATE users SET last_login = datetime('now'), city = ?, country = ?, name = COALESCE(NULLIF(name, ''), ?) WHERE id = ?`
+      `UPDATE users SET last_login = datetime('now'), name = COALESCE(NULLIF(name, ''), ?) WHERE id = ?`
     )
-      .bind(city, country, name, user.id)
+      .bind(name, user.id)
       .run();
   }
 
