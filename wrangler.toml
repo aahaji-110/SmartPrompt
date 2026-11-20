@@ -2,10 +2,7 @@ name = "smartprompt"
 compatibility_date = "2025-01-01"
 pages_build_output_dir = "."
 
-# Bind your Cloudflare D1 database in the Cloudflare Pages Dashboard:
-# Settings -> Functions -> D1 database bindings -> Variable name: DB
-# Or uncomment below with your real database_id for local wrangler dev:
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "smartprompt-db"
-# database_id = "YOUR_D1_DATABASE_ID"
+[[d1_databases]]
+binding = "DB"
+database_name = "smartprompt-db"
+database_id = "86422720-6bef-491b-b274-ae78936e0e8e"
