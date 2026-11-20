@@ -1,12 +1,20 @@
 import { ensureSchema } from '../../_lib/db.js';
 import { getSecret, json, parseCookies, verifyToken } from '../../_lib/crypto.js';
 
+function isValidGoogleClientId(v) {
+  return typeof v === 'string' && /^[0-9]+-[a-z0-9_]+\.apps\.googleusercontent\.com$/i.test(v.trim());
+}
+
 export async function onRequestGet({ request, env }) {
-  if (!env.DB) return json({ user: null, db_ready: false, google_client_id: env.GOOGLE_CLIENT_ID || '' });
+  if (!env.DB) {
+    const cid = isValidGoogleClientId(env.GOOGLE_CLIENT_ID) ? env.GOOGLE_CLIENT_ID.trim() : '';
+    return json({ user: null, db_ready: false, google_client_id: cid });
+  }
   await ensureSchema(env.DB);
 
   const gRow = await env.DB.prepare(`SELECT value FROM settings WHERE key = 'google_client_id'`).first();
-  const googleClientId = ((gRow && gRow.value) || env.GOOGLE_CLIENT_ID || '').trim();
+  const rawCid = ((gRow && gRow.value) || env.GOOGLE_CLIENT_ID || '').trim();
+  const googleClientId = isValidGoogleClientId(rawCid) ? rawCid : '';
 
   const cookies = parseCookies(request);
   const payload = await verifyToken(cookies.sp_user, getSecret(env));

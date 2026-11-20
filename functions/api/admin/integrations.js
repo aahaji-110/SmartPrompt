@@ -20,11 +20,21 @@ export async function onRequestPost({ request, env }) {
   }
 
   if (typeof body.googleClientId === 'string') {
+    const cid = body.googleClientId.trim();
+    if (cid && !/^[0-9]+-[a-z0-9_]+\.apps\.googleusercontent\.com$/i.test(cid)) {
+      return json(
+        {
+          error:
+            'معرّف Google Client ID غير صحيح (يجب أن ينتهي بـ .apps.googleusercontent.com). اتركه فارغاً إذا كنت تريد فقط تفعيل مفتاح Gemini.'
+        },
+        400
+      );
+    }
     await env.DB.prepare(
       `INSERT INTO settings (key, value, updated_at) VALUES ('google_client_id', ?, datetime('now'))
        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`
     )
-      .bind(body.googleClientId.trim())
+      .bind(cid)
       .run();
   }
 
