@@ -31,7 +31,8 @@ export async function onRequestGet({ request, env }) {
   ]);
 
   const hasGeminiKey = Boolean((kRow && kRow.value) || env.GEMINI_API_KEY);
-  const googleClientId = ((gRow && gRow.value) || env.GOOGLE_CLIENT_ID || '').trim();
+  const rawCid = ((gRow && gRow.value) || env.GOOGLE_CLIENT_ID || '').trim();
+  const googleClientId = /^[0-9]+-[a-z0-9_]+\.apps\.googleusercontent\.com$/i.test(rawCid) ? rawCid : '';
 
   return json({
     ok: true,
