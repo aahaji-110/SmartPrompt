@@ -10,25 +10,26 @@
 @media (prefers-color-scheme:dark){:root{--bg:#171715;--card:#222220;--ink:#f1efe8;--mute:#a09e94;--line:#3a3935;--acc:#f97316;--acc-ink:#1a1209;--soft:#2e2218}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Tahoma,"Noto Sans Arabic",Arial,sans-serif;line-height:1.65}
-main{max-width:960px;margin:0 auto;padding:22px 16px 60px}
+main{max-width:1080px;margin:0 auto;padding:22px 16px 60px}
 .head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
 h1{font-size:1.35rem;margin:0}
 h2{font-size:1.1rem;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:16px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
-.stat b{display:block;font-size:1.5rem;color:var(--acc)}
-.stat span{font-size:.82rem;color:var(--mute)}
+.stat b{display:block;font-size:1.45rem;color:var(--acc)}
+.stat span{font-size:.8rem;color:var(--mute)}
 .btn{border:0;border-radius:10px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--acc);color:var(--acc-ink)}
 .btn.ghost{background:var(--soft);color:var(--acc)}
-.btn.sm{padding:6px 12px;font-size:.82rem;border-radius:8px}
+.btn.danger{background:#dc2626;color:#fff}
+.btn.sm{padding:5px 10px;font-size:.8rem;border-radius:8px}
 .btn:disabled{opacity:.55;cursor:default}
-input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);padding:9px 11px;font:inherit}
-label{display:block;font-weight:600;font-size:.88rem;margin:10px 0 4px}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);padding:8px 10px;font:inherit}
+label{display:block;font-weight:600;font-size:.86rem;margin:10px 0 4px}
 .row{display:flex;gap:10px;flex-wrap:wrap}
-.row>div{flex:1;min-width:180px}
-.err{color:#b91c1c;font-size:.9rem;margin-top:8px}
-.ok{color:#15803d;font-size:.9rem;margin-top:8px}
+.row>div{flex:1;min-width:170px}
+.err{color:#b91c1c;font-size:.88rem;margin-top:8px}
+.ok{color:#15803d;font-size:.88rem;margin-top:8px}
 .prompt-item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--bg)}
 .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:.83rem}
 .badges{display:flex;flex-wrap:wrap;gap:6px}
@@ -38,10 +39,19 @@ label{display:block;font-weight:600;font-size:.88rem;margin:10px 0 4px}
 .res-box{white-space:pre-wrap;direction:ltr;text-align:left;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.84rem;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:220px;overflow:auto}
 .ad-prev{margin-top:12px;text-align:center;padding:12px;border:1px dashed var(--line);border-radius:10px}
 .ad-prev img{max-width:100%;max-height:160px;border-radius:10px}
-table{width:100%;border-collapse:collapse;font-size:.86rem}
-th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
-th{color:var(--mute);font-weight:600}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.filters input{max-width:260px}
+.fchip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:.82rem;cursor:pointer}
+.fchip.active{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+th{color:var(--mute);font-weight:600;white-space:nowrap}
 .tbl-wrap{overflow-x:auto}
+.inline-sel{padding:5px 7px;font-size:.8rem;min-width:95px}
+.inline-in{padding:5px 7px;font-size:.8rem;min-width:110px}
+.mini-btns{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.mini-btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:2px 6px;font-size:.72rem;cursor:pointer}
+.mini-btn:hover{border-color:var(--acc);color:var(--acc)}
 </style>
 </head>
 <body>
@@ -49,7 +59,7 @@ th{color:var(--mute);font-weight:600}
   <div class="head">
     <h1>⚙️ لوحة تحكم الأدمن — 3dyat</h1>
     <div style="display:flex;gap:8px">
-      <a href="/" class="btn ghost sm" style="text-decoration:none">فتح الموقع</a>
+      <a href="/" class="btn ghost sm" style="text-decoration:none">← العودة للموقع</a>
       <button class="btn ghost sm" id="logoutBtn" style="display:none" type="button">تسجيل خروج</button>
     </div>
   </div>
@@ -71,7 +81,8 @@ th{color:var(--mute);font-weight:600}
       <div class="stat"><b id="sVisitors">0</b><span>الزوار</span></div>
       <div class="stat"><b id="sVisits">0</b><span>مرات الدخول</span></div>
       <div class="stat"><b id="sGen">0</b><span>البرومتات المولّدة</span></div>
-      <div class="stat"><b id="sUsers">0</b><span>المسجلون بالإيميل</span></div>
+      <div class="stat"><b id="sUsers">0</b><span>إجمالي الأعضاء</span></div>
+      <div class="stat"><b id="sPro">0</b><span>مشتركين احترافيين 👑</span></div>
       <div class="stat"><b id="sAi">—</b><span>محرك Gemini AI</span></div>
     </div>
 
@@ -82,6 +93,81 @@ th{color:var(--mute);font-weight:600}
         <button class="btn ghost sm" id="refreshBtn" type="button">تحديث</button>
       </h2>
       <div id="promptsList"></div>
+    </div>
+
+    <!-- Subscription & Monetization Settings -->
+    <div class="card">
+      <h2>💳 إعدادات الاشتراكات والباقات (تحكم كامل)</h2>
+      <div class="row">
+        <div>
+          <label for="sub_paid">نظام الموقع</label>
+          <select id="sub_paid">
+            <option value="0">مجاني بالكامل للجميع (بدون حدود)</option>
+            <option value="1">تفعيل نظام الاشتراكات والحدود اليومية</option>
+          </select>
+        </div>
+        <div>
+          <label for="sub_free_lim">الحد اليومي للمجاني (عند التفعيل)</label>
+          <input type="number" id="sub_free_lim" min="0" max="1000" value="3">
+        </div>
+        <div>
+          <label for="sub_pro_lim">الحد اليومي للاحترافي (0 = غير محدود)</label>
+          <input type="number" id="sub_pro_lim" min="0" max="10000" value="0">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="sub_free_img">ميزة رفع الصور للمجاني</label>
+          <select id="sub_free_img">
+            <option value="1">مسموح للجميع</option>
+            <option value="0">للمشتركين الاحترافيين فقط 👑</option>
+          </select>
+        </div>
+        <div>
+          <label for="sub_price">السعر المعروض للترقية</label>
+          <input type="text" id="sub_price" placeholder="مثال: 29 ريال / شهرياً">
+        </div>
+        <div>
+          <label for="sub_link">رابط الاشتراك / الدفع / الواتساب</label>
+          <input type="text" id="sub_link" dir="ltr" placeholder="https://wa.me/9665... أو رابط متجرك">
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="saveSubBtn" type="button">حفظ إعدادات الاشتراكات</button>
+        <span id="subMsg"></span>
+      </div>
+    </div>
+
+    <!-- Full Subscribers & Members Control -->
+    <div class="card">
+      <h2>
+        <span>👥 إدارة المشتركين والأعضاء بالكامل</span>
+        <button class="btn ghost sm" id="exportCsvBtn" type="button">تصدير CSV</button>
+      </h2>
+      <div class="filters">
+        <input type="text" id="userSearch" placeholder="🔍 ابحث بالإيميل أو الاسم أو المدينة...">
+        <button type="button" class="fchip active" data-f="all">الكل</button>
+        <button type="button" class="fchip" data-f="pro">احترافي 👑</button>
+        <button type="button" class="fchip" data-f="free">مجاني</button>
+        <button type="button" class="fchip" data-f="suspended">موقوف</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>العضو / المدينة</th>
+              <th>الاستخدام</th>
+              <th>الباقة</th>
+              <th>تاريخ الانتهاء</th>
+              <th>حد يومي خاص</th>
+              <th>الحالة</th>
+              <th>ملاحظة</th>
+              <th>إجراء</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Ad Banner Manager -->
@@ -104,7 +190,6 @@ th{color:var(--mute);font-weight:600}
           </select>
         </div>
       </div>
-
       <div class="row">
         <div>
           <label for="a_file">رفع صورة بنر مباشرة من جهازك</label>
@@ -115,7 +200,6 @@ th{color:var(--mute);font-weight:600}
           <input type="text" id="a_img" dir="ltr" placeholder="/imeges/banner.png أو https://...">
         </div>
       </div>
-
       <div class="row">
         <div>
           <label for="a_ln">رابط التحويل عند الضغط على الإعلان</label>
@@ -126,31 +210,12 @@ th{color:var(--mute);font-weight:600}
           <input type="text" id="a_tx" placeholder="ثرديات موقع يحقق أحلامك">
         </div>
       </div>
-
       <label for="a_cd">كود الإعلان (في حال اختيار نوع: كود)</label>
       <textarea id="a_cd" dir="ltr" style="min-height:70px"></textarea>
-
       <div class="ad-prev" id="adPrev"></div>
-
       <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="btn" id="saveAdBtn" type="button">حفظ وتحديث الإعلان مباشرة</button>
         <span id="adMsg"></span>
-      </div>
-    </div>
-
-    <!-- Registered Users -->
-    <div class="card">
-      <h2>
-        <span>👥 المستخدمون المسجلون بالإيميل</span>
-        <button class="btn ghost sm" id="exportCsvBtn" type="button">تصدير CSV</button>
-      </h2>
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr><th>الإيميل</th><th>الاسم</th><th>المدينة</th><th>الباقة</th><th>عدد البرومتات</th><th>تاريخ التسجيل</th></tr>
-          </thead>
-          <tbody id="usersBody"></tbody>
-        </table>
       </div>
     </div>
 
@@ -166,9 +231,6 @@ th{color:var(--mute);font-weight:600}
           <label for="geminiKey">مفتاح الذكاء الاصطناعي (Gemini API Key)</label>
           <input type="password" id="geminiKey" dir="ltr" placeholder="اتركه فارغاً للإبقاء على المفتاح الحالي">
         </div>
-      </div>
-      <div style="font-size:.8rem;color:var(--mute);margin-top:6px">
-        للحصول على Google Client ID مجاناً: ادخل <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:var(--acc)">Google Cloud Credentials</a> ← Create Credentials ← OAuth client ID (Web application) وأضف رابط موقعك في Authorized JavaScript origins.
       </div>
       <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="btn" id="saveIntBtn" type="button">حفظ إعدادات الربط</button>
@@ -206,9 +268,14 @@ th{color:var(--mute);font-weight:600}
 <script>
 (function(){
   var $=function(id){return document.getElementById(id)};
-  var uploadBase64='', uploadMime='', usersCache=[];
+  var uploadBase64='', uploadMime='', usersCache=[], currentFilter='all';
 
   function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+  function addDays(days){
+    var d=new Date(Date.now()+days*86400000);
+    return d.toISOString().slice(0,10);
+  }
 
   function copyText(text, btn){
     var done=function(){var old=btn.textContent;btn.textContent='تم النسخ ✓';setTimeout(function(){btn.textContent=old},1400)};
@@ -246,12 +313,90 @@ th{color:var(--mute);font-weight:600}
 
   $('a_file').onchange=function(e){
     var f=e.target.files[0];if(!f)return;
-    compressBanner(f,function(mime,b64){
-      uploadMime=mime;uploadBase64=b64;
-      renderAdPreview();
-    });
+    compressBanner(f,function(mime,b64){uploadMime=mime;uploadBase64=b64;renderAdPreview()});
   };
   ['a_on','a_ty','a_img','a_tx'].forEach(function(id){$(id).oninput=renderAdPreview;$(id).onchange=renderAdPreview});
+
+  function renderUsersTable(){
+    var q=$('userSearch').value.trim().toLowerCase();
+    var tb=$('usersBody');
+    var filtered=usersCache.filter(function(u){
+      if(currentFilter==='pro'&&u.plan!=='pro')return false;
+      if(currentFilter==='free'&&u.plan!=='free')return false;
+      if(currentFilter==='suspended'&&u.status!=='suspended')return false;
+      if(q){
+        var hay=(u.email+' '+(u.name||'')+' '+(u.city||'')+' '+(u.notes||'')).toLowerCase();
+        if(hay.indexOf(q)===-1)return false;
+      }
+      return true;
+    });
+    if(!filtered.length){
+      tb.innerHTML='<tr><td colspan="8" style="color:var(--mute);text-align:center">لا يوجد أعضاء مطابقون للبحث.</td></tr>';
+      return;
+    }
+    tb.innerHTML='';
+    filtered.forEach(function(u){
+      var loc=[u.city,u.country].filter(Boolean).join('، ')||'—';
+      var tr=document.createElement('tr');
+      tr.innerHTML=
+        '<td><div dir="ltr" style="font-weight:600">'+esc(u.email)+'</div><div style="font-size:.76rem;color:var(--mute)">'+esc(u.name||'—')+' · 📍 '+esc(loc)+'</div></td>'+
+        '<td><div>الكل: <b>'+Number(u.usage_count||0)+'</b></div><div style="font-size:.75rem;color:var(--mute)">اليوم: '+Number(u.today_count||0)+'</div></td>'+
+        '<td><select class="inline-sel u-plan"><option value="free"'+(u.plan!=='pro'?' selected':'')+'>مجاني</option><option value="pro"'+(u.plan==='pro'?' selected':'')+'>👑 احترافي</option></select></td>'+
+        '<td><input type="date" class="inline-in u-exp" dir="ltr" value="'+esc(u.plan_expires_at||'')+'">'+
+          '<div class="mini-btns"><button type="button" class="mini-btn" data-d="30">+30 يوم</button><button type="button" class="mini-btn" data-d="365">+سنة</button><button type="button" class="mini-btn" data-d="0">دائم</button></div></td>'+
+        '<td><input type="number" class="inline-in u-lim" style="width:78px;min-width:70px" min="0" placeholder="افتراضي" value="'+(u.custom_daily_limit!==null&&u.custom_daily_limit!==undefined?u.custom_daily_limit:'')+'"></td>'+
+        '<td><select class="inline-sel u-stat"><option value="active"'+(u.status!=='suspended'?' selected':'')+'>نشط ✅</option><option value="suspended"'+(u.status==='suspended'?' selected':'')+'>موقوف ⛔</option></select></td>'+
+        '<td><input type="text" class="inline-in u-note" placeholder="ملاحظة..." value="'+esc(u.notes||'')+'"></td>'+
+        '<td><div style="display:flex;gap:4px"><button type="button" class="btn sm u-save">حفظ</button><button type="button" class="btn danger sm u-del">حذف</button></div></td>';
+
+      tr.querySelectorAll('.mini-btn').forEach(function(mb){
+        mb.onclick=function(){
+          var days=Number(mb.getAttribute('data-d'));
+          tr.querySelector('.u-plan').value='pro';
+          tr.querySelector('.u-exp').value=days?addDays(days):'';
+        };
+      });
+
+      tr.querySelector('.u-save').onclick=function(ev){
+        var btn=ev.target;
+        btn.disabled=true;btn.textContent='…';
+        var payload={
+          id:u.id,
+          plan:tr.querySelector('.u-plan').value,
+          plan_expires_at:tr.querySelector('.u-exp').value,
+          custom_daily_limit:tr.querySelector('.u-lim').value,
+          status:tr.querySelector('.u-stat').value,
+          notes:tr.querySelector('.u-note').value.trim()
+        };
+        fetch('/api/admin/user-update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+          .then(function(r){return r.json()})
+          .then(function(res){
+            btn.disabled=false;
+            btn.textContent=res.ok?'تم ✓':'خطأ';
+            setTimeout(function(){btn.textContent='حفظ'},1200);
+            if(res.ok) loadOverview();
+          })
+          .catch(function(){btn.disabled=false;btn.textContent='حفظ'});
+      };
+
+      tr.querySelector('.u-del').onclick=function(){
+        if(!confirm('متأكد من حذف حساب '+u.email+' نهائياً؟'))return;
+        fetch('/api/admin/user-update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:u.id,action:'delete'})})
+          .then(function(){loadOverview()});
+      };
+
+      tb.appendChild(tr);
+    });
+  }
+
+  $('userSearch').oninput=renderUsersTable;
+  document.querySelectorAll('.fchip').forEach(function(ch){
+    ch.onclick=function(){
+      currentFilter=ch.getAttribute('data-f');
+      document.querySelectorAll('.fchip').forEach(function(x){x.classList.toggle('active',x===ch)});
+      renderUsersTable();
+    };
+  });
 
   function loadOverview(){
     fetch('/api/admin/overview')
@@ -269,11 +414,20 @@ th{color:var(--mute);font-weight:600}
         $('sVisits').textContent=Number(d.stats.visits||0).toLocaleString('en-US');
         $('sGen').textContent=Number(d.stats.gen||0).toLocaleString('en-US');
         $('sUsers').textContent=Number(d.users_count||0).toLocaleString('en-US');
+        $('sPro').textContent=Number(d.pro_count||0).toLocaleString('en-US');
         $('sAi').textContent=d.ai_enabled?'مفعّل ✅':'قوالب ⚡';
         $('gClientId').value=d.google_client_id||'';
         $('geminiKey').placeholder=d.ai_enabled?'مفعّل حالياً ✅ (أدخل مفتاحاً جديداً لتغييره)':'الصق مفتاح Gemini API هنا';
 
-        // Ad config
+        if(d.sub_settings){
+          $('sub_paid').value=d.sub_settings.paid_mode?'1':'0';
+          $('sub_free_lim').value=d.sub_settings.free_daily_limit;
+          $('sub_pro_lim').value=d.sub_settings.pro_daily_limit;
+          $('sub_free_img').value=d.sub_settings.free_allow_images?'1':'0';
+          $('sub_price').value=d.sub_settings.upgrade_price||'';
+          $('sub_link').value=d.sub_settings.upgrade_link||'';
+        }
+
         if(d.ad){
           $('a_on').value=d.ad.on?'1':'0';
           $('a_ty').value=d.ad.type||'image';
@@ -285,7 +439,6 @@ th{color:var(--mute);font-weight:600}
           renderAdPreview();
         }
 
-        // Last 5 prompts
         var list=$('promptsList');
         if(!d.last_prompts||!d.last_prompts.length){
           list.innerHTML='<p style="color:var(--mute);margin:0">لا توجد برومتات مولّدة بعد.</p>';
@@ -322,12 +475,7 @@ th{color:var(--mute);font-weight:600}
     fetch('/api/admin/users').then(function(r){return r.json()}).then(function(d){
       if(!d||!d.ok)return;
       usersCache=d.users||[];
-      var tb=$('usersBody');
-      if(!usersCache.length){tb.innerHTML='<tr><td colspan="6" style="color:var(--mute)">لا يوجد مستخدمون مسجلون بعد.</td></tr>';return}
-      tb.innerHTML=usersCache.map(function(u){
-        var loc=[u.city,u.country].filter(Boolean).join('، ')||'—';
-        return '<tr><td dir="ltr">'+esc(u.email)+'</td><td>'+esc(u.name||'—')+'</td><td>'+esc(loc)+'</td><td>'+(u.plan==='pro'?'احترافي':'مجاني')+'</td><td>'+Number(u.usage_count||0)+'</td><td dir="ltr">'+esc(u.created_at)+'</td></tr>';
-      }).join('');
+      renderUsersTable();
     });
   }
 
@@ -344,10 +492,32 @@ th{color:var(--mute);font-weight:600}
       .catch(function(){$('loginErr').textContent='تعذر الاتصال بالسيرفر.'});
   };
 
-  $('logoutBtn').onclick=function(){
-    fetch('/api/admin/logout',{method:'POST'}).finally(function(){location.reload()});
-  };
+  $('logoutBtn').onclick=function(){fetch('/api/admin/logout',{method:'POST'}).finally(function(){location.reload()})};
   $('refreshBtn').onclick=loadOverview;
+
+  $('saveSubBtn').onclick=function(){
+    var btn=$('saveSubBtn'), msg=$('subMsg');
+    btn.disabled=true;msg.className='';msg.textContent='جاري الحفظ…';
+    fetch('/api/admin/subscriptions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        paid_mode:$('sub_paid').value==='1',
+        free_daily_limit:Number($('sub_free_lim').value)||0,
+        pro_daily_limit:Number($('sub_pro_lim').value)||0,
+        free_allow_images:$('sub_free_img').value==='1',
+        upgrade_price:$('sub_price').value.trim(),
+        upgrade_link:$('sub_link').value.trim()
+      })
+    })
+      .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})
+      .then(function(res){
+        btn.disabled=false;
+        if(!res.ok){msg.className='err';msg.textContent=res.j.error||'فشل الحفظ';return}
+        msg.className='ok';msg.textContent='تم حفظ إعدادات الاشتراكات بنجاح ✓';
+      })
+      .catch(function(){btn.disabled=false;msg.className='err';msg.textContent='خطأ في الاتصال'});
+  };
 
   $('saveAdBtn').onclick=function(){
     var btn=$('saveAdBtn'), msg=$('adMsg');
@@ -380,8 +550,8 @@ th{color:var(--mute);font-weight:600}
 
   $('exportCsvBtn').onclick=function(){
     if(!usersCache.length)return;
-    var rows=[['Email','Name','City','Country','Plan','Usage','CreatedAt']];
-    usersCache.forEach(function(u){rows.push([u.email,u.name||'',u.city||'',u.country||'',u.plan||'free',u.usage_count||0,u.created_at||''])});
+    var rows=[['Email','Name','City','Country','Plan','ExpiresAt','Status','Usage','Notes','CreatedAt']];
+    usersCache.forEach(function(u){rows.push([u.email,u.name||'',u.city||'',u.country||'',u.plan||'free',u.plan_expires_at||'',u.status||'active',u.usage_count||0,u.notes||'',u.created_at||''])});
     var csv='\uFEFF'+rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(',')}).join('\n');
     var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='smartprompt-users.csv';a.click();
   };

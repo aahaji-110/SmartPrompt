@@ -1,4 +1,4 @@
-import { ensureSchema, getAdConfig, getAllStats } from '../../_lib/db.js';
+import { ensureSchema, getAdConfig, getAllStats, getSubSettings } from '../../_lib/db.js';
 import { getSecret, json, parseCookies, verifyToken } from '../../_lib/crypto.js';
 
 async function requireAdmin(request, env) {
@@ -16,7 +16,7 @@ export async function onRequestGet({ request, env }) {
   }
   await ensureSchema(env.DB);
 
-  const [promptsRes, usersCountRow, statsMap, ad, gRow, kRow] = await Promise.all([
+  const [promptsRes, usersCountRow, proCountRow, statsMap, ad, subSettings, gRow, kRow] = await Promise.all([
     env.DB.prepare(
       `SELECT id, user_email, user_name, category_key, category_name, mode, idea, result, engine, city, country, created_at
        FROM prompts
@@ -24,8 +24,10 @@ export async function onRequestGet({ request, env }) {
        LIMIT 5`
     ).all(),
     env.DB.prepare('SELECT COUNT(*) AS count FROM users').first(),
+    env.DB.prepare(`SELECT COUNT(*) AS count FROM users WHERE plan = 'pro' AND status = 'active'`).first(),
     getAllStats(env.DB),
     getAdConfig(env.DB),
+    getSubSettings(env.DB),
     env.DB.prepare(`SELECT value FROM settings WHERE key = 'google_client_id'`).first(),
     env.DB.prepare(`SELECT value FROM settings WHERE key = 'gemini_api_key'`).first()
   ]);
@@ -39,12 +41,14 @@ export async function onRequestGet({ request, env }) {
     ai_enabled: hasGeminiKey,
     google_client_id: googleClientId,
     users_count: Number(usersCountRow && usersCountRow.count) || 0,
+    pro_count: Number(proCountRow && proCountRow.count) || 0,
     stats: {
       visitors: statsMap.visitors || 0,
       visits: statsMap.visits || 0,
       gen: statsMap.gen || 0
     },
     last_prompts: promptsRes.results || [],
-    ad
+    ad,
+    sub_settings: subSettings
   });
 }

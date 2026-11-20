@@ -1,4 +1,4 @@
-// Cloudflare D1 database helper with automatic schema bootstrap
+// Cloudflare D1 database helper with automatic schema bootstrap & migrations
 
 let schemaReady = false;
 
@@ -11,6 +11,15 @@ export const DEFAULT_AD = {
   code: ''
 };
 
+export const DEFAULT_SUB_SETTINGS = {
+  paid_mode: false,
+  free_daily_limit: 3,
+  pro_daily_limit: 0,
+  free_allow_images: true,
+  upgrade_price: '29 ريال / شهرياً',
+  upgrade_link: 'https://3dyat.com/'
+};
+
 export async function ensureSchema(db) {
   if (!db || schemaReady) return;
   await db.batch([
@@ -20,6 +29,10 @@ export async function ensureSchema(db) {
       name TEXT DEFAULT '',
       password_hash TEXT NOT NULL,
       plan TEXT NOT NULL DEFAULT 'free',
+      plan_expires_at TEXT DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'active',
+      custom_daily_limit INTEGER DEFAULT NULL,
+      notes TEXT DEFAULT '',
       usage_count INTEGER NOT NULL DEFAULT 0,
       city TEXT DEFAULT '',
       country TEXT DEFAULT '',
@@ -51,8 +64,25 @@ export async function ensureSchema(db) {
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )`),
     db.prepare(`CREATE INDEX IF NOT EXISTS idx_prompts_created_at ON prompts(created_at DESC)`),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_prompts_user_date ON prompts(user_id, created_at)`),
     db.prepare(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`)
   ]);
+
+  // Safe migrations for existing D1 databases created before subscription fields existed
+  const migrations = [
+    `ALTER TABLE users ADD COLUMN plan_expires_at TEXT DEFAULT ''`,
+    `ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active'`,
+    `ALTER TABLE users ADD COLUMN custom_daily_limit INTEGER DEFAULT NULL`,
+    `ALTER TABLE users ADD COLUMN notes TEXT DEFAULT ''`
+  ];
+  for (const sql of migrations) {
+    try {
+      await db.prepare(sql).run();
+    } catch {
+      // Column already exists
+    }
+  }
+
   schemaReady = true;
 }
 
@@ -84,4 +114,24 @@ export async function getAdConfig(db) {
   } catch {
     return DEFAULT_AD;
   }
+}
+
+export async function getSubSettings(db) {
+  if (!db) return DEFAULT_SUB_SETTINGS;
+  const row = await db.prepare(`SELECT value FROM settings WHERE key = 'sub_settings'`).first();
+  if (!row || !row.value) return DEFAULT_SUB_SETTINGS;
+  try {
+    return { ...DEFAULT_SUB_SETTINGS, ...JSON.parse(row.value) };
+  } catch {
+    return DEFAULT_SUB_SETTINGS;
+  }
+}
+
+export function resolveEffectivePlan(user) {
+  if (!user || user.plan !== 'pro') return 'free';
+  if (user.plan_expires_at) {
+    const exp = Date.parse(user.plan_expires_at + (user.plan_expires_at.length === 10 ? 'T23:59:59Z' : ''));
+    if (!Number.isNaN(exp) && exp < Date.now()) return 'free';
+  }
+  return 'pro';
 }

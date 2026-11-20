@@ -112,6 +112,7 @@ footer a:hover{text-decoration:underline}
       مولّد البرومتات الاحترافية
     </h1>
     <div class="top-actions">
+      <a href="/admin.html" class="btn sm" id="adminNavBtn" style="display:none;text-decoration:none">⚙️ لوحة الأدمن</a>
       <div id="authArea">
         <button class="btn ghost sm" id="openAuthBtn" type="button">دخول / حساب جديد</button>
       </div>
@@ -147,6 +148,12 @@ footer a:hover{text-decoration:underline}
 
   <button class="btn" id="go" type="button" style="width:100%">أنشئ البرومت الاحترافي</button>
   <div class="err" id="err"></div>
+  <div class="card" id="upgradeBox" style="display:none;margin-top:12px;border-color:var(--acc);background:var(--soft);text-align:center">
+    <strong style="display:block;font-size:1.05rem;margin-bottom:6px">👑 الترقية للباقة الاحترافية</strong>
+    <div id="upgradeMsg" style="font-size:.9rem;margin-bottom:10px"></div>
+    <div id="upgradePrice" style="font-weight:700;color:var(--acc);margin-bottom:10px"></div>
+    <a id="upgradeLink" href="#" target="_blank" rel="noopener" class="btn" style="display:inline-block;text-decoration:none">اشترك الآن</a>
+  </div>
 
   <div class="card" id="res" style="display:none;margin-top:14px">
     <div class="bar">
@@ -167,7 +174,7 @@ footer a:hover{text-decoration:underline}
   <footer>
     <div>جميع الحقوق محفوظة لـ 3dyat</div>
     <div>المصمم: علي الحاجي</div>
-    <div><a href="mailto:aahaji_110@gmail.com">aahaji_110@gmail.com</a></div>
+    <div><a href="mailto:aahaji_110@gmail.com">aahaji_110@gmail.com</a> · <a href="/admin.html" style="opacity:.7">⚙️ إدارة الموقع</a></div>
   </footer>
 </main>
 
@@ -259,8 +266,9 @@ footer a:hover{text-decoration:underline}
       area.innerHTML='<button class="btn ghost sm" id="openAuthBtn" type="button">دخول / حساب جديد</button>';
       $('openAuthBtn').onclick=function(){openAuth('login')};
     } else {
-      var planLabel=currentUser.plan==='pro'?'احترافي':'مجاني';
-      area.innerHTML='<div class="user-pill"><span class="plan-badge">'+planLabel+'</span><span dir="ltr" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHtml(currentUser.email)+'</span><button class="btn ghost sm" id="logoutBtn" type="button" style="padding:3px 9px;font-size:.76rem">خروج</button></div>';
+      var planLabel=currentUser.plan==='pro'?'👑 احترافي':'مجاني';
+      var quota=currentUser.daily_limit>0?' ('+(currentUser.today_used||0)+'/'+currentUser.daily_limit+')':'';
+      area.innerHTML='<div class="user-pill"><span class="plan-badge">'+planLabel+quota+'</span><span dir="ltr" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHtml(currentUser.email)+'</span><button class="btn ghost sm" id="logoutBtn" type="button" style="padding:3px 9px;font-size:.76rem">خروج</button></div>';
       $('logoutBtn').onclick=logout;
     }
   }
@@ -377,6 +385,7 @@ footer a:hover{text-decoration:underline}
       .then(function(r){return r.json()})
       .then(function(j){
         currentUser=j.user||null;
+        if(j.is_admin) $('adminNavBtn').style.display='inline-flex';
         if(j.google_client_id) initGoogleSdk(j.google_client_id);
         renderAuth();
       })
@@ -493,7 +502,7 @@ footer a:hover{text-decoration:underline}
     if(!currentUser){pendingGenerate=true;openAuth('login');return}
     if(busy)return;
 
-    busy=true;$('err').textContent='';$('go').disabled=true;$('go').textContent='جاري إنشاء البرومت الاحترافي…';
+    busy=true;$('err').textContent='';$('upgradeBox').style.display='none';$('go').disabled=true;$('go').textContent='جاري إنشاء البرومت الاحترافي…';
     var settings=t.o.map(function(o,i){return{label:o[0],value:$('o'+i).value}});
 
     fetch('/api/generate',{
@@ -505,6 +514,14 @@ footer a:hover{text-decoration:underline}
       .then(function(res){
         if(!res.ok){
           if(res.status===401){currentUser=null;renderAuth();pendingGenerate=true;openAuth('login');return}
+          if(res.status===402||res.j.code==='limit_reached'){
+            $('upgradeMsg').textContent=res.j.error||'وصلت للحد اليومي في الباقة المجانية.';
+            $('upgradePrice').textContent=res.j.upgrade_price||'';
+            var ln=$('upgradeLink');
+            if(res.j.upgrade_link){ln.href=res.j.upgrade_link;ln.style.display='inline-block'}else{ln.style.display='none'}
+            $('upgradeBox').style.display='block';
+            return;
+          }
           $('err').textContent=res.j.error||'صار خطأ، حاول مرة ثانية.';
           return;
         }
@@ -513,6 +530,7 @@ footer a:hover{text-decoration:underline}
         var tag=$('engTag');
         tag.hidden=false;
         tag.textContent=res.j.engine==='ai'?'✨ ذكاء اصطناعي':'⚡ قالب احترافي';
+        if(currentUser){currentUser.today_used=(currentUser.today_used||0)+1;renderAuth()}
         refreshStats();
       })
       .catch(function(){$('err').textContent='تعذر الاتصال بالسيرفر، تأكد من الإنترنت وحاول مرة ثانية.'})

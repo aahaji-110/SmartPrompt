@@ -1,4 +1,4 @@
-import { ensureSchema, incrementStat } from '../_lib/db.js';
+import { ensureSchema, getSubSettings, incrementStat, resolveEffectivePlan } from '../_lib/db.js';
 import { getGeo, getSecret, json, parseCookies, verifyToken } from '../_lib/crypto.js';
 import { buildGeminiPrompt, CATEGORIES, fallbackGenerate } from '../_lib/prompts.js';
 
@@ -67,13 +67,16 @@ export async function onRequestPost({ request, env }) {
   }
 
   const user = await env.DB.prepare(
-    'SELECT id, email, name, plan, usage_count FROM users WHERE id = ?'
+    'SELECT id, email, name, plan, plan_expires_at, status, custom_daily_limit, usage_count FROM users WHERE id = ?'
   )
     .bind(session.uid)
     .first();
 
   if (!user) {
     return json({ error: 'انتهت الجلسة، سجّل دخولك مرة ثانية.', code: 'auth_required' }, 401);
+  }
+  if (user.status === 'suspended') {
+    return json({ error: 'تم إيقاف حسابك مؤقتاً، تواصل مع إدارة الموقع.' }, 403);
   }
 
   let body;
@@ -92,6 +95,52 @@ export async function onRequestPost({ request, env }) {
   const settings = Array.isArray(body.settings) ? body.settings.slice(0, 6) : [];
   const imageBase64 = typeof body.imageBase64 === 'string' && body.imageBase64.length < 6_000_000 ? body.imageBase64 : '';
   const imageMime = typeof body.imageMime === 'string' && /^image\/(png|jpeg|jpg|webp|gif)$/i.test(body.imageMime) ? body.imageMime : '';
+
+  // Subscription & Quota Enforcement
+  const sub = await getSubSettings(env.DB);
+  const effectivePlan = resolveEffectivePlan(user);
+  let dailyLimit = 0;
+  if (user.custom_daily_limit !== null && user.custom_daily_limit !== undefined) {
+    dailyLimit = Number(user.custom_daily_limit);
+  } else if (sub.paid_mode) {
+    dailyLimit = effectivePlan === 'pro' ? Number(sub.pro_daily_limit || 0) : Number(sub.free_daily_limit || 0);
+  }
+
+  if (sub.paid_mode && effectivePlan === 'free' && !sub.free_allow_images && imageBase64) {
+    return json(
+      {
+        error: 'ميزة رفع الصور متاحة لمشتركي الباقة الاحترافية فقط.',
+        code: 'limit_reached',
+        upgrade_price: sub.upgrade_price,
+        upgrade_link: sub.upgrade_link
+      },
+      402
+    );
+  }
+
+  if (dailyLimit > 0 || (sub.paid_mode && effectivePlan === 'free' && sub.free_daily_limit === 0 && user.custom_daily_limit === null)) {
+    const todayRow = await env.DB.prepare(
+      `SELECT COUNT(*) AS count FROM prompts WHERE user_id = ? AND date(created_at) = date('now')`
+    )
+      .bind(user.id)
+      .first();
+    const todayUsed = Number(todayRow && todayRow.count) || 0;
+    const enforcedLimit = dailyLimit;
+    if (todayUsed >= enforcedLimit) {
+      return json(
+        {
+          error:
+            enforcedLimit === 0
+              ? 'هذه الخدمة متاحة للمشتركين في الباقة الاحترافية فقط.'
+              : `وصلت للحد اليومي (${enforcedLimit} برومتات) في باقتك الحالية. قم بالترقية للاستخدام غير المحدود!`,
+          code: 'limit_reached',
+          upgrade_price: sub.upgrade_price,
+          upgrade_link: sub.upgrade_link
+        },
+        402
+      );
+    }
+  }
 
   const cat = CATEGORIES[catIndex];
   let result = '';
